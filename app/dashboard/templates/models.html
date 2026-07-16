@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Models - AI Creative Studio</title>
+    <style>
+        :root {
+            --bg: #0d1117; --surface: #161b22; --border: #30363d;
+            --text: #e6edf3; --dim: #8b949e; --accent: #58a6ff;
+            --green: #3fb950; --red: #f85149; --yellow: #d29922;
+            --radius: 12px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+               background: var(--bg); color: var(--text); }
+        .header { background: var(--surface); border-bottom: 1px solid var(--border);
+                  padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 1.4em; }
+        .header h1 span { color: var(--accent); }
+        .nav { display: flex; gap: 8px; }
+        .nav a { color: var(--dim); text-decoration: none; padding: 8px 16px;
+                 border-radius: var(--radius); transition: all 0.2s; }
+        .nav a:hover, .nav a.active { color: var(--text); background: var(--bg); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+        .model-section { margin-bottom: 32px; }
+        .model-section h2 { margin-bottom: 16px; font-size: 1.2em;
+                            border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+
+        .model-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+
+        .model-card { background: var(--surface); border: 1px solid var(--border);
+                      border-radius: var(--radius); padding: 20px; transition: all 0.2s; }
+        .model-card:hover { border-color: var(--accent); }
+        .model-card.loaded { border-color: var(--green); }
+
+        .model-card .name { font-size: 1.1em; font-weight: 600; margin-bottom: 4px; }
+        .model-card .meta { color: var(--dim); font-size: 0.85em; margin-bottom: 12px; }
+        .model-card .stats { display: flex; gap: 16px; margin-bottom: 12px; font-size: 0.85em; }
+        .model-card .stats .stat { display: flex; flex-direction: column; }
+        .model-card .stats .label { color: var(--dim); }
+
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 10px;
+                 font-size: 0.75em; font-weight: 600; }
+        .badge.loaded { background: var(--green); color: #fff; }
+        .badge.too-large { background: var(--red); color: #fff; }
+
+        .btn { padding: 8px 16px; border: 1px solid var(--border); border-radius: 8px;
+               background: var(--surface); color: var(--text); cursor: pointer; font-size: 0.9em; }
+        .btn:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-load { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .btn-unload { background: var(--red); color: #fff; border-color: var(--red); }
+
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 24px;
+                 border-radius: var(--radius); background: var(--surface);
+                 border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+                 display: none; z-index: 100; }
+        .toast.show { display: block; }
+        .toast.success { border-color: var(--green); }
+        .toast.error { border-color: var(--red); }
+
+        .vram-bar { background: var(--bg); border-radius: 6px; height: 8px; margin: 8px 0; }
+        .vram-fill { height: 100%; border-radius: 6px; background: var(--accent); transition: width 0.5s; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><span>AI</span> Creative Studio</h1>
+        <div class="nav">
+            <a href="/">Dashboard</a>
+            <a href="/models" class="active">Models</a>
+            <a href="/workflows">Workflows</a>
+            <a href="/projects">Projects</a>
+            <a href="/settings">Settings</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+            <h1>Models</h1>
+            <div>
+                <button class="btn" onclick="unloadAll()">Unload All</button>
+                <button class="btn" onclick="refreshModels()">Refresh</button>
+            </div>
+        </div>
+
+        {% for type_name, models in registry.items() %}
+        <div class="model-section">
+            <h2>{{ type_name | title }} Models</h2>
+            <div class="model-grid">
+                {% for m in models %}
+                <div class="model-card {% if m.id in loaded_names %}loaded{% endif %}" id="card-{{ m.id }}">
+                    <div style="display:flex;justify-content:space-between;align-items:start">
+                        <div class="name">{{ m.name }}</div>
+                        {% if m.id in loaded_names %}
+                            <span class="badge loaded">Loaded</span>
+                        {% endif %}
+                    </div>
+                    <div class="meta">{{ m.use_case }}</div>
+                    <div class="stats">
+                        <div class="stat">
+                            <span class="label">Size</span>
+                            <span>{{ m.size_gb }}GB</span>
+                        </div>
+                        <div class="stat">
+                            <span class="label">Quality</span>
+                            <span>{{ m.quality }}</span>
+                        </div>
+                        <div class="stat">
+                            <span class="label">Speed</span>
+                            <span>{{ m.speed }}</span>
+                        </div>
+                    </div>
+                    {% if m.id in loaded_names %}
+                        <button class="btn btn-unload" onclick="unloadModel('{{ m.id }}')">Unload</button>
+                    {% else %}
+                        <button class="btn btn-load" onclick="loadModel('{{ m.id }}', '{{ type_name }}')">Load</button>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        function showToast(msg, type='success') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast show ' + type;
+            setTimeout(() => t.className = 'toast', 3000);
+        }
+
+        async function loadModel(id, type) {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = 'Loading...';
+            try {
+                const r = await fetch('/api/model/load', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({model_id: id, type: type})
+                });
+                const data = await r.json();
+                if (data.error) { showToast(data.error, 'error'); btn.disabled = false; btn.textContent = 'Load'; }
+                else { showToast(id + ' loaded!'); location.reload(); }
+            } catch(e) { showToast('Failed: ' + e.message, 'error'); btn.disabled = false; btn.textContent = 'Load'; }
+        }
+
+        async function unloadModel(id) {
+            try {
+                const r = await fetch('/api/model/unload', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({model_id: id})
+                });
+                const data = await r.json();
+                showToast(id + ' unloaded');
+                location.reload();
+            } catch(e) { showToast('Failed: ' + e.message, 'error'); }
+        }
+
+        async function unloadAll() {
+            try {
+                await fetch('/api/model/unload', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{}'});
+                showToast('All models unloaded');
+                location.reload();
+            } catch(e) { showToast('Failed', 'error'); }
+        }
+
+        function refreshModels() { location.reload(); }
+    </script>
+</body>
+</html>

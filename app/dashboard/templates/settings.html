@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - AI Creative Studio</title>
+    <style>
+        :root {
+            --bg: #0d1117; --surface: #161b22; --border: #30363d;
+            --text: #e6edf3; --dim: #8b949e; --accent: #58a6ff;
+            --green: #3fb950; --red: #f85149; --yellow: #d29922;
+            --radius: 12px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+               background: var(--bg); color: var(--text); }
+        .header { background: var(--surface); border-bottom: 1px solid var(--border);
+                  padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 1.4em; }
+        .header h1 span { color: var(--accent); }
+        .nav { display: flex; gap: 8px; }
+        .nav a { color: var(--dim); text-decoration: none; padding: 8px 16px;
+                 border-radius: var(--radius); transition: all 0.2s; }
+        .nav a:hover, .nav a.active { color: var(--text); background: var(--bg); }
+        .container { max-width: 800px; margin: 0 auto; padding: 24px; }
+
+        .card { background: var(--surface); border: 1px solid var(--border);
+                border-radius: var(--radius); padding: 24px; margin-bottom: 16px; }
+        .card h2 { margin-bottom: 16px; font-size: 1.1em; }
+
+        .field { margin-bottom: 16px; }
+        .field label { display: block; margin-bottom: 6px; font-size: 0.9em; color: var(--dim); }
+        .field .hint { font-size: 0.8em; color: var(--dim); margin-top: 4px; }
+
+        input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+            border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.95em; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+        textarea { resize: vertical; min-height: 80px; }
+
+        input[type="range"] { padding: 0; border: none; background: transparent; }
+
+        .btn { padding: 10px 24px; border: 1px solid var(--border); border-radius: 8px;
+               background: var(--surface); color: var(--text); cursor: pointer; font-size: 0.95em; }
+        .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .btn-primary:hover { opacity: 0.9; }
+
+        .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 24px;
+                 border-radius: var(--radius); background: var(--surface);
+                 border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+                 display: none; z-index: 100; }
+        .toast.show { display: block; }
+
+        .divider { border-top: 1px solid var(--border); margin: 24px 0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><span>AI</span> Creative Studio</h1>
+        <div class="nav">
+            <a href="/">Dashboard</a>
+            <a href="/models">Models</a>
+            <a href="/workflows">Workflows</a>
+            <a href="/projects">Projects</a>
+            <a href="/settings" class="active">Settings</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1 style="margin-bottom:24px">Settings</h1>
+
+        <div class="card">
+            <h2>Personal</h2>
+            <div class="field">
+                <label>Display Name</label>
+                <input type="text" id="display_name" value="{{ config.display_name }}">
+            </div>
+            <div class="field">
+                <label>Theme</label>
+                <select id="theme">
+                    <option value="dark" {% if config.theme == 'dark' %}selected{% endif %}>Dark</option>
+                    <option value="light" {% if config.theme == 'light' %}selected{% endif %}>Light</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Default Models</h2>
+            <div class="field">
+                <label>Default Text Model</label>
+                <select id="default_model">
+                    <option value="llama-3.1-8b" {% if config.default_model == 'llama-3.1-8b' %}selected{% endif %}>Llama 3.1 8B (Fast)</option>
+                    <option value="gemma-2-27b" {% if config.default_model == 'gemma-2-27b' %}selected{% endif %}>Gemma2 27B (Quality)</option>
+                    <option value="llama-3.1-70b" {% if config.default_model == 'llama-3.1-70b' %}selected{% endif %}>Llama 3.1 70B (Best)</option>
+                </select>
+                <div class="hint">Auto-loaded when you start writing</div>
+            </div>
+            <div class="field">
+                <label>Default Image Model</label>
+                <select id="image_model">
+                    <option value="flux1-dev" {% if config.image_model == 'flux1-dev' %}selected{% endif %}>Flux.1 Dev</option>
+                    <option value="sdxl" {% if config.image_model == 'sdxl' %}selected{% endif %}>SDXL 1.0</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Voice & Audio</h2>
+            <div class="field">
+                <label>TTS Voice</label>
+                <select id="tts_voice">
+                    <option value="af_heart" {% if config.tts_voice == 'af_heart' %}selected{% endif %}>Heart (Warm Female)</option>
+                    <option value="af_bella" {% if config.tts_voice == 'af_bella' %}selected{% endif %}>Bella (Clear Female)</option>
+                    <option value="af_nicole" {% if config.tts_voice == 'af_nicole' %}selected{% endif %}>Nicole (Professional Female)</option>
+                    <option value="am_adam" {% if config.tts_voice == 'am_adam' %}selected{% endif %}>Adam (Warm Male)</option>
+                    <option value="am_michael" {% if config.tts_voice == 'am_michael' %}selected{% endif %}>Michael (Deep Male)</option>
+                </select>
+                <div class="hint">Used for all voiceovers</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Output</h2>
+            <div class="field">
+                <label>Default Export Format</label>
+                <select id="output_format">
+                    <option value="mp4" {% if config.output_format == 'mp4' %}selected{% endif %}>MP4 (Universal)</option>
+                    <option value="mov" {% if config.output_format == 'mov' %}selected{% endif %}>MOV (Apple)</option>
+                    <option value="webm" {% if config.output_format == 'webm' %}selected{% endif %}>WebM (Web)</option>
+                    <option value="png" {% if config.output_format == 'png' %}selected{% endif %}>PNG (Images)</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Auto-Export to Exports Folder</label>
+                <select id="auto_export">
+                    <option value="true" {% if config.auto_export %}selected{% endif %}>Yes - auto-copy finished work</option>
+                    <option value="false" {% if not config.auto_export %}selected{% endif %}>No - I'll manage files myself</option>
+                </select>
+                <div class="hint">Automatically copies finished projects to the exports folder</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Model Management</h2>
+            <div class="field">
+                <label>Auto-Offload After Idle</label>
+                <select id="auto_offload_minutes">
+                    <option value="5" {% if config.auto_offload_minutes == 5 %}selected{% endif %}>5 minutes</option>
+                    <option value="15" {% if config.auto_offload_minutes == 15 %}selected{% endif %}>15 minutes</option>
+                    <option value="30" {% if config.auto_offload_minutes == 30 %}selected{% endif %}>30 minutes</option>
+                    <option value="60" {% if config.auto_offload_minutes == 60 %}selected{% endif %}>1 hour</option>
+                    <option value="0" {% if config.auto_offload_minutes == 0 %}selected{% endif %}>Never (keep loaded)</option>
+                </select>
+                <div class="hint">Frees VRAM when you're not using the model</div>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:12px;margin-top:24px">
+            <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+            <button class="btn" onclick="location.reload()">Reset</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast show';
+            setTimeout(() => t.className = 'toast', 3000);
+        }
+
+        async function saveSettings() {
+            const config = {
+                display_name: document.getElementById('display_name').value,
+                theme: document.getElementById('theme').value,
+                default_model: document.getElementById('default_model').value,
+                image_model: document.getElementById('image_model').value,
+                tts_voice: document.getElementById('tts_voice').value,
+                output_format: document.getElementById('output_format').value,
+                auto_export: document.getElementById('auto_export').value === 'true',
+                auto_offload_minutes: parseInt(document.getElementById('auto_offload_minutes').value),
+            };
+
+            try {
+                const r = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(config)
+                });
+                const data = await r.json();
+                showToast('Settings saved!');
+            } catch(e) {
+                showToast('Failed to save: ' + e.message);
+            }
+        }
+    </script>
+</body>
+</html>

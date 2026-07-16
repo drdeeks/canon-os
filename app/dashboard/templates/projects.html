@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects - AI Creative Studio</title>
+    <style>
+        :root {
+            --bg: #0d1117; --surface: #161b22; --border: #30363d;
+            --text: #e6edf3; --dim: #8b949e; --accent: #58a6ff;
+            --green: #3fb950; --red: #f85149; --yellow: #d29922;
+            --radius: 12px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+               background: var(--bg); color: var(--text); }
+        .header { background: var(--surface); border-bottom: 1px solid var(--border);
+                  padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 1.4em; }
+        .header h1 span { color: var(--accent); }
+        .nav { display: flex; gap: 8px; }
+        .nav a { color: var(--dim); text-decoration: none; padding: 8px 16px;
+                 border-radius: var(--radius); transition: all 0.2s; }
+        .nav a:hover, .nav a.active { color: var(--text); background: var(--bg); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+        .project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+
+        .project-card { background: var(--surface); border: 1px solid var(--border);
+                        border-radius: var(--radius); padding: 20px; transition: all 0.2s; }
+        .project-card:hover { border-color: var(--accent); }
+        .project-card .name { font-size: 1.1em; font-weight: 600; margin-bottom: 8px; }
+        .project-card .meta { color: var(--dim); font-size: 0.85em; }
+
+        .btn { padding: 10px 20px; border: 1px solid var(--border); border-radius: 8px;
+               background: var(--surface); color: var(--text); cursor: pointer; font-size: 0.95em; }
+        .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+        .new-project-form { background: var(--surface); border: 1px solid var(--border);
+                            border-radius: var(--radius); padding: 24px; margin-bottom: 24px; display: none; }
+        .new-project-form.show { display: block; }
+        .new-project-form input { width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+                                  border-radius: 8px; background: var(--bg); color: var(--text);
+                                  font-size: 0.95em; margin-bottom: 12px; }
+        .new-project-form input:focus { outline: none; border-color: var(--accent); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><span>AI</span> Creative Studio</h1>
+        <div class="nav">
+            <a href="/">Dashboard</a>
+            <a href="/models">Models</a>
+            <a href="/workflows">Workflows</a>
+            <a href="/projects" class="active">Projects</a>
+            <a href="/settings">Settings</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+            <h1>My Projects</h1>
+            <button class="btn btn-primary" onclick="toggleNewProject()">+ New Project</button>
+        </div>
+
+        <div class="new-project-form" id="newProjectForm">
+            <h2 style="margin-bottom:12px">Create New Project</h2>
+            <input type="text" id="projectName" placeholder="Project name (e.g., headphone-commercial)">
+            <div style="display:flex;gap:12px">
+                <button class="btn btn-primary" onclick="createProject()">Create</button>
+                <button class="btn" onclick="toggleNewProject()">Cancel</button>
+            </div>
+        </div>
+
+        {% if projects %}
+        <div class="project-grid">
+            {% for p in projects %}
+            <div class="project-card">
+                <div class="name">{{ p.name }}</div>
+                <div class="meta">
+                    <div>Size: {{ p.size_mb }}MB</div>
+                    <div>Modified: {{ p.modified }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align:center;padding:60px;color:var(--dim)">
+            <div style="font-size:3em;margin-bottom:16px"></div>
+            <p>No projects yet. Create your first project to get started!</p>
+            <p style="font-size:0.85em;margin-top:8px">Projects are saved to your personal storage.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function toggleNewProject() {
+            document.getElementById('newProjectForm').classList.toggle('show');
+        }
+        function createProject() {
+            const name = document.getElementById('projectName').value.trim();
+            if (!name) { alert('Please enter a project name'); return; }
+            // In production, this would call an API
+            alert('Project "' + name + '" will be created. Use workflows to generate content.');
+            toggleNewProject();
+        }
+    </script>
+</body>
+</html>

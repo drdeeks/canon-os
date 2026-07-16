@@ -1,0 +1,30 @@
+[Unit]
+Description=Resource Monitor Daemon
+Documentation=file:///home/ubuntu/ai-creative-studio/scripts/resource-monitor.sh --help
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+Type=simple
+ExecStart=/home/ubuntu/ai-creative-studio/scripts/resource-monitor.sh --watch
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=10
+User=root
+Group=root
+WorkingDirectory=/home/ubuntu/ai-creative-studio
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=resource-monitor
+RuntimeDirectory=resource-monitor
+RuntimeDirectoryMode=0755
+
+# Security hardening
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/mnt/studio/logs /var/run
+ReadOnlyPaths=/home/ubuntu/ai-creative-studio
+
+[Install]
+WantedBy=multi-user.target

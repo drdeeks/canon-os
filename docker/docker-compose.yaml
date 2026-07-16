@@ -1,0 +1,408 @@
+# ============================================================================
+# AI Creative Studio - Docker Compose Stack
+# ============================================================================
+# Every service runs isolated. All data on /mnt/studio external storage.
+# GPU passthrough configured per-service. Host SSH is the only entry point.
+#
+# Usage:
+#   cd /opt/ai-studio
+#   docker compose up -d        # Start all services
+#   docker compose down          # Stop all services
+#   docker compose logs -f       # Follow logs
+# ============================================================================
+
+services:
+
+  # --------------------------------------------------------------------------
+  # TEXT AI - Ollama (GGUF model serving)
+  # Port: 11434 (Ollama API)
+  # --------------------------------------------------------------------------
+  ollama:
+    image: ollama/ollama:latest
+    container_name: studio-ollama
+    restart: unless-stopped
+    user: "1000:1000"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - /mnt/studio/models/text:/models:ro
+      - ollama-data:/root/.ollama
+      - /tmp/ollama:/tmp
+    environment:
+      - OLLAMA_MODELS=/models
+      - OLLAMA_HOST=0.0.0.0:11434
+      - OLLAMA_NUM_PARALLEL=1
+    tmpfs:
+      - /tmp:size=2G
+      - /run:size=100M
+    deploy:
+      resources:
+        limits:
+          memory: 48G
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # --------------------------------------------------------------------------
+  # TEXT AI - llama.cpp server (alternative to Ollama for direct GGUF control)
+  # Port: 8080
+  # --------------------------------------------------------------------------
+  llama-cpp:
+    image: ghcr.io/ggerganov/llama.cpp:server
+    container_name: studio-llamacpp
+    restart: unless-stopped
+    user: "1000:1000"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - /mnt/studio/models/text:/models:ro
+    command: >
+      --host 0.0.0.0
+      --port 8080
+      --model /models/llama-3.1-70b-instruct-Q4_K_M.gguf
+      --ctx-size 8192
+      --n-gpu-layers 99
+      --chat-template chatml
+    tmpfs:
+      - /tmp:size=2G
+    deploy:
+      resources:
+        limits:
+          memory: 48G
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # --------------------------------------------------------------------------
+  # IMAGE/VIDEO AI - ComfyUI
+  # Port: 8188
+  # --------------------------------------------------------------------------
+  comfyui:
+    image: ghcr.io/ai-dock/comfyui:latest-cuda
+    container_name: studio-comfyui
+    restart: unless-stopped
+    user: "1000:1000"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    ports:
+      - "127.0.0.1:8188:8188"
+    volumes:
+      - /mnt/studio/models/image:/app/ComfyUI/models:ro
+      - /mnt/studio/models/video:/app/ComfyUI/models/video:ro
+      - /mnt/studio/exports:/app/ComfyUI/output
+      - /mnt/studio/uploads:/app/ComfyUI/input
+      - comfyui-workflows:/app/ComfyUI/user
+      - /mnt/studio/cache/comfyui:/app/ComfyUI/custom_nodes
+    environment:
+      - DIRECT_ADDRESS=0.0.0.0
+      - PORT=8188
+      - CF_QUICK_TUNNELS=false
+      - WEB_ENABLE_AUTH=false
+    tmpfs:
+      - /tmp:size=4G
+      - /run:size=100M
+    deploy:
+      resources:
+        limits:
+          memory: 32G
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8188/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # --------------------------------------------------------------------------
+  # CHAT FRONTEND - Open WebUI
+  # Port: 3000
+  # --------------------------------------------------------------------------
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: studio-openwebui
+    restart: unless-stopped
+    user: "1000:1000"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    ports:
+      - "127.0.0.1:3000:8080"
+    volumes:
+      - open-webui-data:/app/backend/data
+      - /mnt/studio/uploads:/app/backend/uploads
+      - /mnt/studio/exports:/app/backend/exports
+    environment:
+      - OLLAMA_BASE_URL=http://studio-ollama:11434
+      - WEBUI_SECRET_KEY=change-this-to-random-string
+      - ENABLE_SIGNUP=true
+    tmpfs:
+      - /tmp:size=500M
+    depends_on:
+      ollama:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # --------------------------------------------------------------------------
+  # TRANSCRIPTION - Whisper.cpp
+  # Port: 9000
+  # --------------------------------------------------------------------------
+  whisper:
+    image: ghcr.io/drhino/whisper-cpp-api:latest
+    container_name: studio-whisper
+    restart: unless-stopped
+    user: "1000:1000"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    ports:
+      - "127.0.0.1:9000:9000"
+    volumes:
+      - /mnt/studio/models/audio/whisper:/models:ro
+      - /mnt/studio/uploads:/uploads
+      - /mnt/studio/exports:/exports
+    environment:
+      - WHISPER_MODEL=/models/ggml-large-v3.bin
+      - WHISPER_HOST=0.0.0.0
+      - WHISPER_PORT=9000
+    tmpfs:
+      - /tmp:size=2G
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # --------------------------------------------------------------------------
+  # TTS - Kokoro (ONNX)
+  # Port: 8880
+  # --------------------------------------------------------------------------
+  kokoro:
+    image: python:3.11-slim
+    container_name: studio-kokoro
+    restart: unless-stopped
+    user: "1000:1000"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    ports:
+      - "127.0.0.1:8880:8880"
+    volumes:
+      - /mnt/studio/models/audio/kokoro:/models:ro
+      - /mnt/studio/exports:/exports
+      - kokoro-app:/app
+    working_dir: /app
+    command: >
+      bash -c "
+        pip install --no-cache-dir kokoro-onnx soundfile flask &&
+        python server.py
+      "
+    tmpfs:
+      - /tmp:size=1G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8880/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # --------------------------------------------------------------------------
+  # CREATIVE UI - InvokeAI (Leonardo-style interface)
+  # Port: 9090 -- PRIMARY INTERFACE for image/video work
+  # Official image: ghcr.io/invoke-ai/invokeai:latest
+  # Docs: https://github.com/invoke-ai/InvokeAI/tree/main/docker
+  # --------------------------------------------------------------------------
+  invokeai:
+    image: ghcr.io/invoke-ai/invokeai:latest
+    container_name: studio-invokeai
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+    ports:
+      - "127.0.0.1:9090:9090"
+    environment:
+      - INVOKEAI_ROOT=/invokeai
+      - INVOKEAI_PORT=9090
+      - GPU_DRIVER=cuda
+      - CONTAINER_UID=1000
+      - HF_HOME=/invokeai/.cache/huggingface
+    volumes:
+      - /mnt/studio/invokeai:/invokeai
+      - /mnt/studio/cache/huggingface:/invokeai/.cache/huggingface
+    deploy:
+      resources:
+        limits:
+          memory: 24G
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090/api/v1/app/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+  # --------------------------------------------------------------------------
+  # CREATOR DASHBOARD - Companion for text/audio tools
+  # Port: 5000 -- text generation, TTS, transcription, music
+  # --------------------------------------------------------------------------
+  dashboard:
+    build:
+      context: ../app/dashboard
+      dockerfile: Dockerfile
+    container_name: studio-dashboard
+    restart: unless-stopped
+    user: "1000:1000"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    ports:
+      - "127.0.0.1:5000:5000"
+    volumes:
+      - /home/creator/ai-studio:/home/creator/ai-studio
+      - /mnt/studio:/mnt/studio
+      - /mnt/studio/exports:/app/output:ro
+      - /mnt/studio/uploads:/app/uploads
+      - dashboard-tmp:/tmp
+    environment:
+      - CREATOR_HOME=/home/creator/ai-studio
+      - STUDIO_MOUNT=/mnt/studio
+      - FLASK_ENV=production
+    tmpfs:
+      - /tmp:size=500M
+    depends_on:
+      ollama:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # --------------------------------------------------------------------------
+  # MUSIC GENERATION - AudioCraft (MusicGen)
+  # Port: 8890
+  # --------------------------------------------------------------------------
+  audiocraft:
+    image: ghcr.io/facebookresearch/audiocraft:latest
+    container_name: studio-audiocraft
+    restart: unless-stopped
+    user: "1000:1000"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    ports:
+      - "127.0.0.1:8890:8890"
+    volumes:
+      - /mnt/studio/models/audio/musicgen:/root/.cache/torch:ro
+      - /mnt/studio/exports:/exports
+    environment:
+      - GRADIO_SERVER_NAME=0.0.0.0
+      - GRADIO_SERVER_PORT=8890
+    tmpfs:
+      - /tmp:size=2G
+      - /root/.cache/huggingface:size=2G
+    deploy:
+      resources:
+        limits:
+          memory: 16G
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8890/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  default:
+    name: studio-network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+
+# ============================================================================
+# Volumes (named, for non-external data)
+# ============================================================================
+volumes:
+  ollama-data:
+    driver: local
+  comfyui-workflows:
+    driver: local
+  open-webui-data:
+    driver: local
+  kokoro-app:
+    driver: local
+  dashboard-tmp:
+    driver: local

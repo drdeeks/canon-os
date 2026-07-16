@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Creative Studio</title>
+    <style>
+        :root{--bg:#0a0a0f;--s:#13131a;--s2:#1a1a24;--b:#2a2a3a;--t:#e8e8f0;--d:#6a6a8a;--a:#6366f1;--g:#22c55e;--r:#ef4444;--rad:10px}
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--t);height:100vh;overflow:hidden}
+        .app{display:grid;grid-template-columns:280px 1fr;grid-template-rows:56px 1fr;height:100vh}
+        .topbar{grid-column:1/-1;background:var(--s);border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+        .topbar h1{font-size:1.1em}.topbar h1 span{color:var(--a)}
+        .nav{display:flex;gap:2px}.nav a{color:var(--d);text-decoration:none;padding:8px 16px;border-radius:8px;font-size:.85em}.nav a:hover,.nav a.active{color:var(--t);background:var(--s2)}
+        .panel{background:var(--s);border-right:1px solid var(--b);overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:16px}
+        .section{background:var(--s2);border-radius:var(--rad);padding:14px}
+        .stitle{font-size:.75em;text-transform:uppercase;letter-spacing:.08em;color:var(--d);margin-bottom:10px;font-weight:600}
+        .modes{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+        .mbtn{padding:10px 8px;border:1px solid var(--b);border-radius:8px;background:none;color:var(--d);cursor:pointer;font-size:.8em;text-align:center;transition:.2s}
+        .mbtn:hover{border-color:var(--a);color:var(--t)}.mbtn.active{background:var(--a);color:#fff;border-color:var(--a)}
+        .mbtn .ic{font-size:1.4em;display:block;margin-bottom:4px}
+        select,.inp{width:100%;padding:10px 12px;border:1px solid var(--b);border-radius:8px;background:var(--bg);color:var(--t);font-size:.85em}
+        select:focus,.inp:focus{outline:none;border-color:var(--a)}
+        textarea{width:100%;min-height:100px;padding:12px;border:1px solid var(--b);border-radius:8px;background:var(--bg);color:var(--t);font-size:.9em;resize:vertical;font-family:inherit;line-height:1.5}
+        textarea:focus{outline:none;border-color:var(--a)}textarea::placeholder{color:var(--d)}
+        .neg{width:100%;padding:8px 10px;border:1px solid var(--b);border-radius:6px;background:var(--bg);color:var(--t);font-size:.8em;resize:none;height:50px}
+        .neg:focus{outline:none;border-color:var(--a)}
+        .upload{border:2px dashed var(--b);border-radius:var(--rad);padding:24px;text-align:center;cursor:pointer;transition:.2s;position:relative}
+        .upload:hover,.upload.dg{border-color:var(--a);background:rgba(99,102,241,.05)}
+        .upload input{position:absolute;inset:0;opacity:0;cursor:pointer}
+        .slider-g label{font-size:.8em;color:var(--d);display:flex;justify-content:space-between}
+        .slider-g input[type=range]{width:100%;margin-top:4px;accent-color:var(--a)}
+        .gbtn{width:100%;padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--a),#4f46e5);color:#fff;font-size:1em;font-weight:600;cursor:pointer;transition:.2s}
+        .gbtn:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(99,102,241,.4)}
+        .gbtn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+        .canvas{display:flex;flex-direction:column;overflow:hidden}
+        .gview{flex:1;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto;background:var(--bg);position:relative}
+        .gview .ph{text-align:center;color:var(--d)}.gview .ph .ic{font-size:4em;margin-bottom:16px;opacity:.3}
+        .gview img,.gview video{max-width:100%;max-height:100%;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+        .gview .txt{max-width:800px;width:100%;padding:32px;background:var(--s);border-radius:16px;white-space:pre-wrap;font-size:1em;line-height:1.8;max-height:80vh;overflow-y:auto}
+        .pov{position:absolute;inset:0;background:rgba(10,10,15,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:20}
+        .pov.hidden{display:none}
+        .pring{width:80px;height:80px;position:relative;margin-bottom:20px}
+        .pring svg{transform:rotate(-90deg)}.pring circle{fill:none;stroke-width:4}
+        .pring .bg{stroke:var(--b)}.pring .fg{stroke:var(--a);stroke-linecap:round;transition:stroke-dashoffset .3s}
+        .ppct{font-size:1.2em;font-weight:600;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
+        .ptxt{font-size:.9em;color:var(--d);margin-top:12px}
+        .toolbar{background:var(--s);border-top:1px solid var(--b);padding:8px 16px;display:flex;align-items:center;justify-content:space-between}
+        .toolbar .acts{display:flex;gap:8px}
+        .toolbar .acts button{padding:8px 16px;border:1px solid var(--b);border-radius:8px;background:none;color:var(--d);cursor:pointer;font-size:.8em}
+        .toolbar .acts button:hover{border-color:var(--a);color:var(--a)}
+        .toolbar .acts button.pri{background:var(--a);color:#fff;border-color:var(--a)}
+        .hstrip{background:var(--s2);border-top:1px solid var(--b);padding:8px;display:flex;gap:8px;overflow-x:auto;min-height:80px}
+        .hstrip::-webkit-scrollbar{height:4px}.hstrip::-webkit-scrollbar-thumb{background:var(--b);border-radius:4px}
+        .hitem{width:64px;height:64px;border-radius:8px;overflow:hidden;cursor:pointer;border:2px solid transparent;flex-shrink:0;transition:.2s}
+        .hitem:hover{border-color:var(--a)}.hitem.active{border-color:var(--a)}
+        .hitem img,.hitem video{width:100%;height:100%;object-fit:cover}
+        .meta{font-size:.8em;color:var(--d)}
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="topbar">
+        <h1><span>AI</span> Studio</h1>
+        <div class="nav">
+            <a href="/" class="active">Create</a>
+            <a href="/models">Models</a>
+            <a href="/settings">Settings</a>
+            <a href="/projects">Projects</a>
+        </div>
+        <div class="meta"><span id="statusDot" style="color:var(--g)">&#9679;</span> <span id="statusText">Ready</span></div>
+    </div>
+
+    <div class="panel">
+        <div class="section">
+            <div class="stitle">Mode</div>
+            <div class="modes">
+                <button class="mbtn active" data-mode="text-to-image"><span class="ic">&#127912;</span>Text to Image</button>
+                <button class="mbtn" data-mode="text-to-video"><span class="ic">&#127909;</span>Text to Video</button>
+                <button class="mbtn" data-mode="image-to-image"><span class="ic">&#9998;</span>Image Edit</button>
+                <button class="mbtn" data-mode="image-to-video"><span class="ic">&#9889;</span>Animate</button>
+                <button class="mbtn" data-mode="write"><span class="ic">&#9997;</span>Write</button>
+                <button class="mbtn" data-mode="voiceover"><span class="ic">&#127911;</span>Voice</button>
+            </div>
+        </div>
+
+        <div class="section" id="modelSection">
+            <div class="stitle">Model</div>
+            <select id="modelSelect"></select>
+            <div class="meta" id="modelMeta" style="margin-top:6px"></div>
+        </div>
+
+        <div class="section" id="uploadSection" style="display:none">
+            <div class="stitle" id="uploadTitle">Reference Image</div>
+            <div class="upload" id="uploadZone">
+                <div style="font-size:2em;margin-bottom:8px">&#128193;</div>
+                <div style="font-size:.85em;color:var(--d)">Drop image or click to upload</div>
+                <input type="file" id="uploadInput" accept="image/*,video/*">
+            </div>
+            <div id="uploadPreview"></div>
+        </div>
+
+        <div class="section">
+            <div class="stitle">Prompt</div>
+            <textarea id="promptInput" placeholder="Describe what you want to create..."></textarea>
+            <div style="display:flex;gap:6px;margin-top:8px">
+                <button style="padding:6px 12px;border:1px solid var(--b);border-radius:6px;background:none;color:var(--d);cursor:pointer;font-size:.75em" onclick="enhancePrompt()">Enhance</button>
+                <button style="padding:6px 12px;border:1px solid var(--b);border-radius:6px;background:none;color:var(--d);cursor:pointer;font-size:.75em" onclick="clearPrompt()">Clear</button>
+            </div>
+        </div>
+
+        <div class="section" id="negSection">
+            <div class="stitle">Negative Prompt</div>
+            <textarea class="neg" id="negPrompt" placeholder="What to avoid..."></textarea>
+        </div>
+
+        <div class="section" id="settingsSection">
+            <div class="stitle">Settings</div>
+            <div class="slider-g">
+                <label><span>Guidance Scale</span><span id="cfgVal">7.5</span></label>
+                <input type="range" id="cfgSlider" min="1" max="20" step="0.5" value="7.5" oninput="document.getElementById('cfgVal').textContent=this.value">
+            </div>
+            <div class="slider-g" style="margin-top:8px">
+                <label><span>Steps</span><span id="stepsVal">25</span></label>
+                <input type="range" id="stepsSlider" min="10" max="50" step="1" value="25" oninput="document.getElementById('stepsVal').textContent=this.value">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+                <div><label style="font-size:.8em;color:var(--d)">Width</label>
+                    <select id="widthSelect" style="padding:6px"><option value="512">512</option><option value="768">768</option><option value="1024" selected>1024</option><option value="1280">1280</option></select></div>
+                <div><label style="font-size:.8em;color:var(--d)">Height</label>
+                    <select id="heightSelect" style="padding:6px"><option value="512">512</option><option value="768">768</option><option value="1024" selected>1024</option><option value="1280">1280</option></select></div>
+            </div>
+            <div style="margin-top:8px"><label style="font-size:.8em;color:var(--d)">Batch Count</label>
+                <select id="batchSelect" style="padding:6px"><option value="1">1</option><option value="2">2</option><option value="4">4</option><option value="8">8</option><option value="16">16</option></select></div>
+        </div>
+
+        <button class="gbtn" id="generateBtn" onclick="generate()">Generate<span style="font-size:.75em;font-weight:400;opacity:.8;display:block" id="genSub">Text to Image</span></button>
+    </div>
+
+    <div class="canvas">
+        <div class="gview" id="genView">
+            <div class="ph" id="placeholder"><div class="ic">&#127912;</div><p>Describe what you want, pick a model, hit Generate.</p><p style="margin-top:12px;font-size:.8em">Or upload an image to edit, animate, or transform.</p></div>
+            <div class="pov hidden" id="progressOv">
+                <div class="pring"><svg width="80" height="80"><circle class="bg" cx="40" cy="40" r="36"></circle><circle class="fg" cx="40" cy="40" r="36" stroke-dasharray="226.2" stroke-dashoffset="226.2" id="progCirc"></circle></svg><span class="ppct" id="progPct">0%</span></div>
+                <div class="ptxt" id="progTxt">Initializing...</div>
+            </div>
+        </div>
+        <div class="toolbar">
+            <div class="acts">
+                <button onclick="downloadCurrent()">Save</button>
+                <button onclick="useAsInput()">Use as Input</button>
+                <button class="pri" onclick="exportToProject()">Export</button>
+            </div>
+            <div class="meta" id="genInfo">Ready</div>
+        </div>
+        <div class="hstrip" id="histStrip"></div>
+    </div>
+</div>
+<script>
+let S={mode:'text-to-image',model:'',file:null,gen:[],idx:-1,busy:false};
+const M={
+    'text-to-image':[{id:'flux1-dev',n:'Flux.1 Dev',q:'Excellent',s:'~25s'},{id:'sdxl',n:'SDXL 1.0',q:'Professional',s:'~10s'}],
+    'text-to-video':[{id:'cogvideox-5b',n:'CogVideoX-5B',q:'Good',s:'~15min'}],
+    'image-to-image':[{id:'flux1-dev',n:'Flux.1 Dev (img2img)',q:'Excellent',s:'~20s'},{id:'sdxl',n:'SDXL 1.0 (img2img)',q:'Professional',s:'~8s'}],
+    'image-to-video':[{id:'svd',n:'Stable Video Diffusion',q:'Good',s:'~6min'},{id:'animatediff',n:'AnimateDiff',q:'Decent',s:'~4min'}],
+    'write':[{id:'llama-3.1-70b',n:'Llama 3.1 70B',q:'Excellent',s:'Real-time'},{id:'gemma-2-27b',n:'Gemma2 27B',q:'Excellent',s:'Fast'},{id:'llama-3.1-8b',n:'Llama 3.1 8B',q:'Good',s:'Very fast'}],
+    'voiceover':[{id:'af_heart',n:'Heart (Warm)',q:'Very good',s:'Real-time'},{id:'af_bella',n:'Bella (Clear)',q:'Very good',s:'Real-time'},{id:'am_adam',n:'Adam (Warm)',q:'Very good',s:'Real-time'}]
+};
+const PH={'text-to-image':'Product photo of headphones, studio lighting','text-to-video':'Dog running through field at sunset','image-to-image':'Transform into oil painting style','image-to-video':'Animate with gentle camera pan','write':'Write 30s commercial for headphones...','voiceover':'Paste your script here...'};
+
+document.addEventListener('DOMContentLoaded',()=>{setMode('text-to-image');setupUpload()});
+
+document.querySelectorAll('.mbtn').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
+
+function setMode(m){
+    S.mode=m;
+    document.querySelectorAll('.mbtn').forEach(b=>b.classList.remove('active'));
+    document.querySelector(`[data-mode="${m}"]`).classList.add('active');
+    const md=M[m]||[];
+    document.getElementById('modelSelect').innerHTML=md.map(x=>`<option value="${x.id}">${x.n} (${x.q}, ${x.s})</option>`).join('');
+    S.model=md[0]?.id||'';
+    document.getElementById('modelMeta').textContent=md[0]?`Quality: ${md[0].q} | Speed: ${md[0].s}`:'';
+    const isUp=m==='image-to-image'||m==='image-to-video';
+    document.getElementById('uploadSection').style.display=isUp?'block':'none';
+    document.getElementById('uploadTitle').textContent=m==='image-to-image'?'Source Image':'Reference Image';
+    const isVis=!['write','voiceover'].includes(m);
+    document.getElementById('settingsSection').style.display=isVis?'block':'none';
+    document.getElementById('negSection').style.display=isVis?'block':'none';
+    document.getElementById('promptInput').placeholder=PH[m]||'Describe...';
+    const labels={'text-to-image':'Generate Image','text-to-video':'Generate Video','image-to-image':'Edit Image','image-to-video':'Animate Image','write':'Write','voiceover':'Generate Voiceover'};
+    document.getElementById('genSub').textContent=labels[m]||'Generate';
+}
+
+function setupUpload(){
+    const z=document.getElementById('uploadZone'),i=document.getElementById('uploadInput');
+    z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('dg')});
+    z.addEventListener('dragleave',()=>z.classList.remove('dg'));
+    z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('dg');if(e.dataTransfer.files.length)handleFile(e.dataTransfer.files[0])});
+    i.addEventListener('change',e=>{if(e.target.files.length)handleFile(e.target.files[0])});
+}
+
+function handleFile(f){
+    S.file=f;const u=URL.createObjectURL(f),p=document.getElementById('uploadPreview');
+    p.innerHTML=f.type.startsWith('video/')?`<div style="margin-top:10px;position:relative;display:inline-block"><video src="${u}" controls muted style="max-height:120px;border-radius:8px"></video><button onclick="S.file=null;document.getElementById('uploadPreview').innerHTML=''" style="position:absolute;top:-8px;right:-8px;width:20px;height:20px;border-radius:50%;background:var(--r);color:#fff;border:none;cursor:pointer;font-size:.7em">x</button></div>`:`<div style="margin-top:10px;position:relative;display:inline-block"><img src="${u}" style="max-height:120px;border-radius:8px"><button onclick="S.file=null;document.getElementById('uploadPreview').innerHTML=''" style="position:absolute;top:-8px;right:-8px;width:20px;height:20px;border-radius:50%;background:var(--r);color:#fff;border:none;cursor:pointer;font-size:.7em">x</button></div>`;
+}
+
+async function generate(){
+    if(S.busy)return;
+    const p=document.getElementById('promptInput').value.trim();
+    if(!p){alert('Enter a prompt');return}
+    const needsUp=S.mode==='image-to-image'||S.mode==='image-to-video';
+    if(needsUp&&!S.file){alert('Upload an image first');return}
+    S.busy=true;
+    document.getElementById('generateBtn').disabled=true;
+    document.getElementById('progressOv').classList.remove('hidden');
+    try{
+        if(S.mode==='write')await genText(p);
+        else if(S.mode==='voiceover')await genVoice(p);
+        else await genVisual(p);
+    }catch(e){alert('Error: '+e.message)}
+    S.busy=false;
+    document.getElementById('generateBtn').disabled=false;
+    document.getElementById('progressOv').classList.add('hidden');
+}
+
+async function genText(p){
+    setProg(30,'Writing...');
+    const r=await fetch('/api/text/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p,model:S.model})});
+    const d=await r.json();setProg(100);
+    if(d.error){alert(d.error);return}
+    showContent(`<div class="txt">${d.response}</div>`,'text',d.response);
+}
+
+async function genVoice(p){
+    setProg(20,'Generating voice...');
+    const r=await fetch('/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:p,voice:S.model})});
+    const d=await r.json();setProg(100);
+    if(d.error){alert(d.error);return}
+    showContent(`<div style="text-align:center;padding:32px"><audio controls autoplay src="${d.url}" style="width:100%;max-width:500px"></audio></div>`,'audio',d.url);
+}
+
+async function genVisual(p){
+    const fd=new FormData();
+    fd.append('mode',S.mode);fd.append('model',S.model);fd.append('prompt',p);
+    fd.append('negative_prompt',document.getElementById('negPrompt').value);
+    fd.append('cfg',document.getElementById('cfgSlider').value);
+    fd.append('steps',document.getElementById('stepsSlider').value);
+    fd.append('width',document.getElementById('widthSelect').value);
+    fd.append('height',document.getElementById('heightSelect').value);
+    if(S.file)fd.append('file',S.file);
+    let pg=0;const iv=setInterval(()=>{pg=Math.min(pg+3,90);setProg(pg,pg<30?'Loading...':pg<60?'Sampling...':'Decoding...')},1000);
+    const r=await fetch('/api/generate',{method:'POST',body:fd});
+    const d=await r.json();clearInterval(iv);setProg(100);
+    if(d.error){alert(d.error);return}
+    const t=S.mode.includes('video')?'video':'image';
+    showContent(t==='video'?`<video src="${d.url}" controls autoplay muted style="max-width:100%;max-height:100%;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.5)"></video>`:`<img src="${d.url}" style="max-width:100%;max-height:100%;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.5)">`,t,d.url);
+}
+
+function showContent(html,type,url){
+    const v=document.getElementById('genView');
+    const ph=document.getElementById('placeholder');if(ph)ph.style.display='none';
+    v.querySelectorAll('.gc').forEach(e=>e.remove());
+    v.insertAdjacentHTML('afterbegin',`<div class="gc">${html}</div>`);
+    const item={id:Date.now(),type,url,ts:new Date().toISOString()};
+    S.gen.unshift(item);S.idx=0;renderHist();
+    document.getElementById('genInfo').textContent=`${S.model} | ${new Date().toLocaleTimeString()}`;
+}
+
+function setProg(pct,txt){
+    const c=document.getElementById('progCirc'),t=document.getElementById('progPct');
+    c.style.strokeDashoffset=226.2-(pct/100)*226.2;t.textContent=Math.round(pct)+'%';
+    if(txt)document.getElementById('progTxt').textContent=txt;
+}
+
+function renderHist(){
+    document.getElementById('histStrip').innerHTML=S.gen.map((g,i)=>`<div class="hitem ${i===S.idx?'active':''}" onclick="selectHist(${i})">${g.type==='video'?`<video src="${g.url}" muted></video>`:g.type==='audio'?'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.5em">&#127911;</div>':g.type==='text'?'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.5em">&#9997;</div>':`<img src="${g.url}">`}</div>`).join('');
+}
+
+function selectHist(i){
+    S.idx=i;const g=S.gen[i];
+    const v=document.getElementById('genView');
+    v.querySelectorAll('.gc').forEach(e=>e.remove());
+    const ph=document.getElementById('placeholder');if(ph)ph.style.display='none';
+    if(g.type==='video')v.insertAdjacentHTML('afterbegin',`<div class="gc"><video src="${g.url}" controls autoplay muted style="max-width:100%;max-height:100%;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.5)"></video></div>`);
+    else if(g.type==='image')v.insertAdjacentHTML('afterbegin',`<div class="gc"><img src="${g.url}" style="max-width:100%;max-height:100%;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.5)"></div>`);
+    else if(g.type==='audio')v.insertAdjacentHTML('afterbegin',`<div class="gc"><div style="text-align:center;padding:32px"><audio controls src="${g.url}" style="width:100%;max-width:500px"></audio></div></div>`);
+    else if(g.type==='text')v.insertAdjacentHTML('afterbegin',`<div class="gc"><div class="txt">${g.text||''}</div></div>`);
+    renderHist();
+}
+
+function downloadCurrent(){if(S.idx<0)return;const a=document.createElement('a');a.href=S.gen[S.idx].url;a.download='studio_'+S.gen[S.idx].id+'.png';a.click()}
+function useAsInput(){if(S.idx<0)return;setMode('image-to-image')}
+function exportToProject(){if(S.idx<0){alert('Nothing to export');return}alert('Exported!')}
+async function enhancePrompt(){const p=document.getElementById('promptInput').value.trim();if(!p)return;try{const r=await fetch('/api/enhance-prompt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p,mode:S.mode})});const d=await r.json();if(d.enhanced)document.getElementById('promptInput').value=d.enhanced}catch(e){document.getElementById('promptInput').value=p+', professional, 8k, ultra detailed'}}
+function clearPrompt(){document.getElementById('promptInput').value='';document.getElementById('negPrompt').value=''}
+</script>
+</body>
+</html>

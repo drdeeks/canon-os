@@ -1,0 +1,30 @@
+[Unit]
+Description=Keep-Alive Daemon for External Drives
+Documentation=file:///home/ubuntu/ai-creative-studio/scripts/keep-alive.sh --help
+After=network.target mnt-studio.mount
+Requires=mnt-studio.mount
+
+[Service]
+Type=simple
+ExecStart=/home/ubuntu/ai-creative-studio/scripts/keep-alive.sh
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=10
+User=root
+Group=root
+WorkingDirectory=/home/ubuntu/ai-creative-studio
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=keep-alive
+RuntimeDirectory=keep-alive
+RuntimeDirectoryMode=0755
+
+# Security hardening
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/mnt/studio /var/run
+ReadOnlyPaths=/home/ubuntu/ai-creative-studio
+
+[Install]
+WantedBy=multi-user.target

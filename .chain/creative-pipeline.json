@@ -1,0 +1,127 @@
+{
+  "name": "creative-pipeline",
+  "project": "/home/ubuntu/qwen-cloud-2026/creative-studio/ai-creative-studio",
+  "created_at": "2026-07-10T14:13:58Z",
+  "steps": [
+    {
+      "index": 0,
+      "path": "/home/ubuntu/qwen-cloud-2026/creative-studio/ai-creative-studio/artifacts/creative-brief.yaml",
+      "state": "active",
+      "validator": null,
+      "created_at": "2026-07-10T14:13:58Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 1,
+      "path": "/home/ubuntu/qwen-cloud-2026/creative-studio/ai-creative-studio/artifacts/beat-sheet.yaml",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-10T14:13:58Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 2,
+      "path": "/home/ubuntu/qwen-cloud-2026/creative-studio/ai-creative-studio/artifacts/screenplay.yaml",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-10T14:13:58Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 3,
+      "path": "/home/ubuntu/qwen-cloud-2026/creative-studio/ai-creative-studio/artifacts/storyboard.yaml",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-10T14:13:58Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 4,
+      "path": "/home/ubuntu/qwen-cloud-2026/creative-studio/ai-creative-studio/artifacts/shot-list.yaml",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-10T14:13:58Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 5,
+      "path": "/home/ubuntu/qwen-cloud-2026/creative-studio/ai-creative-studio/artifacts/prompt-graph.yaml",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-10T14:13:58Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 6,
+      "path": "/home/ubuntu/qwen-cloud-2026/creative-studio/ai-creative-studio/artifacts/renders/iteration-complete",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-10T14:13:58Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 7,
+      "path": "/home/ubuntu/qwen-cloud-2026/creative-studio/ai-creative-studio/artifacts/evaluation-report.yaml",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-10T14:13:58Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 8,
+      "path": "/home/ubuntu/qwen-cloud-2026/creative-studio/ai-creative-studio/artifacts/renders/final-complete",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-10T14:13:58Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 9,
+      "path": "/home/ubuntu/qwen-cloud-2026/creative-studio/ai-creative-studio/artifacts/assembled/final-video.mp4",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-10T14:13:58Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 10,
+      "path": "/home/ubuntu/qwen-cloud-2026/creative-studio/ai-creative-studio/artifacts/director-review.yaml",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-10T14:13:58Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 11,
+      "path": "/home/ubuntu/qwen-cloud-2026/creative-studio/ai-creative-studio/artifacts/published/release-marker",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-10T14:13:58Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    }
+  ]
+}

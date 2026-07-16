@@ -1,0 +1,32 @@
+{
+  "_comment": "AI Creative Studio - Backend Configuration",
+  "_docs": "Change 'backends' values to match what you have installed.",
+  "_options": {
+    "text": ["llama-cpp", "ollama", "vllm", "openai"],
+    "image": ["comfyui", "automatic1111"],
+    "video": ["comfyui-video", "animatediff"],
+    "tts": ["kokoro", "coqui", "bark"],
+    "stt": ["whisper", "faster-whisper"]
+  },
+
+  "backends": {
+    "text": "llama-cpp",
+    "image": "comfyui",
+    "video": "comfyui-video",
+    "tts": "kokoro",
+    "stt": "whisper"
+  },
+
+  "urls": {
+    "llama-cpp": "http://studio-llamacpp:8080",
+    "ollama": "http://studio-ollama:11434",
+    "vllm": "http://studio-vllm:8000",
+    "comfyui": "http://studio-comfyui:8188",
+    "automatic1111": "http://studio-a1111:7860",
+    "kokoro": "http://studio-kokoro:8880",
+    "coqui": "http://studio-coqui:5002",
+    "bark": "http://studio-bark:5000",
+    "whisper": "http://studio-whisper:9000",
+    "faster-whisper": "http://studio-fwhisper:8080"
+  }
+}
