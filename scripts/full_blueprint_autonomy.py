@@ -297,6 +297,9 @@ Credit budget is tight. Use the smallest production-quality implementation that
 satisfies this exact chain item and its validation gate. Prefer focused contract
 tests and existing architecture over broad rewrites, optional polish, generated
 scaffolding, or speculative future-phase work.
+When a choice exists, follow docs/autonomy/DEMO_VERTICAL_SLICE.md: functional
+commercial builder, real generation pipeline, local/API model routing, social
+handoff, and scaffolded future modules take priority over non-demo breadth.
 
 Locate its exact requirement and validation gate in the blueprint. Implement it
 fully in this repository, integrate with existing code rather than replacing
@@ -337,6 +340,9 @@ or update this review record: `{review.relative_to(ROOT)}`.
 Credit budget is tight. Review only this active chain item. Run the smallest
 set of probes that can prove or disprove the validation gate, then write the
 verdict. Do not perform broad code review of unrelated future phases.
+Also verify the work preserves docs/autonomy/DEMO_VERTICAL_SLICE.md when the
+active item touches the dashboard, commercial pipeline, model routing, or social
+handoff.
 When Python dashboard checks are relevant, use `{validation_python}`. If it does
 not exist or cannot import declared dependencies, create it with `python3 -m venv
 .venv` and install `{requirements}` into it before running tests.

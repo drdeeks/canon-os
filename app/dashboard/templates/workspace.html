@@ -1,298 +1,122 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Creative Studio</title>
-    <style>
-        :root{--bg:#0a0a0f;--s:#13131a;--s2:#1a1a24;--b:#2a2a3a;--t:#e8e8f0;--d:#6a6a8a;--a:#6366f1;--g:#22c55e;--r:#ef4444;--rad:10px}
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--t);height:100vh;overflow:hidden}
-        .app{display:grid;grid-template-columns:280px 1fr;grid-template-rows:56px 1fr;height:100vh}
-        .topbar{grid-column:1/-1;background:var(--s);border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;padding:0 20px}
-        .topbar h1{font-size:1.1em}.topbar h1 span{color:var(--a)}
-        .nav{display:flex;gap:2px}.nav a{color:var(--d);text-decoration:none;padding:8px 16px;border-radius:8px;font-size:.85em}.nav a:hover,.nav a.active{color:var(--t);background:var(--s2)}
-        .panel{background:var(--s);border-right:1px solid var(--b);overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:16px}
-        .section{background:var(--s2);border-radius:var(--rad);padding:14px}
-        .stitle{font-size:.75em;text-transform:uppercase;letter-spacing:.08em;color:var(--d);margin-bottom:10px;font-weight:600}
-        .modes{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-        .mbtn{padding:10px 8px;border:1px solid var(--b);border-radius:8px;background:none;color:var(--d);cursor:pointer;font-size:.8em;text-align:center;transition:.2s}
-        .mbtn:hover{border-color:var(--a);color:var(--t)}.mbtn.active{background:var(--a);color:#fff;border-color:var(--a)}
-        .mbtn .ic{font-size:1.4em;display:block;margin-bottom:4px}
-        select,.inp{width:100%;padding:10px 12px;border:1px solid var(--b);border-radius:8px;background:var(--bg);color:var(--t);font-size:.85em}
-        select:focus,.inp:focus{outline:none;border-color:var(--a)}
-        textarea{width:100%;min-height:100px;padding:12px;border:1px solid var(--b);border-radius:8px;background:var(--bg);color:var(--t);font-size:.9em;resize:vertical;font-family:inherit;line-height:1.5}
-        textarea:focus{outline:none;border-color:var(--a)}textarea::placeholder{color:var(--d)}
-        .neg{width:100%;padding:8px 10px;border:1px solid var(--b);border-radius:6px;background:var(--bg);color:var(--t);font-size:.8em;resize:none;height:50px}
-        .neg:focus{outline:none;border-color:var(--a)}
-        .upload{border:2px dashed var(--b);border-radius:var(--rad);padding:24px;text-align:center;cursor:pointer;transition:.2s;position:relative}
-        .upload:hover,.upload.dg{border-color:var(--a);background:rgba(99,102,241,.05)}
-        .upload input{position:absolute;inset:0;opacity:0;cursor:pointer}
-        .slider-g label{font-size:.8em;color:var(--d);display:flex;justify-content:space-between}
-        .slider-g input[type=range]{width:100%;margin-top:4px;accent-color:var(--a)}
-        .gbtn{width:100%;padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--a),#4f46e5);color:#fff;font-size:1em;font-weight:600;cursor:pointer;transition:.2s}
-        .gbtn:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(99,102,241,.4)}
-        .gbtn:disabled{opacity:.5;cursor:not-allowed;transform:none}
-        .canvas{display:flex;flex-direction:column;overflow:hidden}
-        .gview{flex:1;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto;background:var(--bg);position:relative}
-        .gview .ph{text-align:center;color:var(--d)}.gview .ph .ic{font-size:4em;margin-bottom:16px;opacity:.3}
-        .gview img,.gview video{max-width:100%;max-height:100%;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
-        .gview .txt{max-width:800px;width:100%;padding:32px;background:var(--s);border-radius:16px;white-space:pre-wrap;font-size:1em;line-height:1.8;max-height:80vh;overflow-y:auto}
-        .pov{position:absolute;inset:0;background:rgba(10,10,15,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:20}
-        .pov.hidden{display:none}
-        .pring{width:80px;height:80px;position:relative;margin-bottom:20px}
-        .pring svg{transform:rotate(-90deg)}.pring circle{fill:none;stroke-width:4}
-        .pring .bg{stroke:var(--b)}.pring .fg{stroke:var(--a);stroke-linecap:round;transition:stroke-dashoffset .3s}
-        .ppct{font-size:1.2em;font-weight:600;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
-        .ptxt{font-size:.9em;color:var(--d);margin-top:12px}
-        .toolbar{background:var(--s);border-top:1px solid var(--b);padding:8px 16px;display:flex;align-items:center;justify-content:space-between}
-        .toolbar .acts{display:flex;gap:8px}
-        .toolbar .acts button{padding:8px 16px;border:1px solid var(--b);border-radius:8px;background:none;color:var(--d);cursor:pointer;font-size:.8em}
-        .toolbar .acts button:hover{border-color:var(--a);color:var(--a)}
-        .toolbar .acts button.pri{background:var(--a);color:#fff;border-color:var(--a)}
-        .hstrip{background:var(--s2);border-top:1px solid var(--b);padding:8px;display:flex;gap:8px;overflow-x:auto;min-height:80px}
-        .hstrip::-webkit-scrollbar{height:4px}.hstrip::-webkit-scrollbar-thumb{background:var(--b);border-radius:4px}
-        .hitem{width:64px;height:64px;border-radius:8px;overflow:hidden;cursor:pointer;border:2px solid transparent;flex-shrink:0;transition:.2s}
-        .hitem:hover{border-color:var(--a)}.hitem.active{border-color:var(--a)}
-        .hitem img,.hitem video{width:100%;height:100%;object-fit:cover}
-        .meta{font-size:.8em;color:var(--d)}
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Canon OS — Commercial Builder</title>
+  <style>
+    :root{color-scheme:dark;--bg:#07080d;--panel:#11131b;--panel2:#171a24;--line:#2b3141;--text:#f4f7fb;--muted:#a9b1c3;--dim:#7d879a;--accent:#7c5cff;--accent2:#19c6ff;--good:#26d07c;--warn:#ffbf47;--bad:#ff6673;--radius:14px}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.55}
+    .shell{min-height:100vh;display:grid;grid-template-columns:300px minmax(0,1fr) 360px;grid-template-rows:64px minmax(0,1fr)}
+    .top{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--line);background:#0b0d14}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:750}.mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;color:white}.brand span{color:var(--muted);font-weight:520}.nav{display:flex;gap:4px}.nav a{color:var(--muted);text-decoration:none;padding:8px 12px;border-radius:10px}.nav a:hover,.nav a.active{background:var(--panel2);color:var(--text)}
+    aside,.right{background:var(--panel);border-right:1px solid var(--line);overflow:auto}.right{border-right:0;border-left:1px solid var(--line)}main{overflow:auto;background:radial-gradient(circle at top left,rgba(124,92,255,.16),transparent 36%),var(--bg)}
+    .stack{display:grid;gap:14px;padding:16px}.card{background:var(--panel2);border:1px solid var(--line);border-radius:var(--radius);padding:14px}.label{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:.82rem;margin:0 0 7px}.hint{color:var(--dim);font-size:.8rem}.control{width:100%;border:1px solid var(--line);border-radius:11px;background:#0b0d14;color:var(--text);padding:10px 11px}.control:focus{outline:2px solid rgba(124,92,255,.35);border-color:var(--accent)}textarea.control{min-height:88px;resize:vertical}.drop{position:relative;border:1.5px dashed #485066;border-radius:14px;padding:18px;text-align:center;background:#0b0d14}.drop input{position:absolute;inset:0;opacity:0}.drop strong{display:block;margin-bottom:5px}.primary,.secondary,.ghost{border:0;border-radius:12px;padding:11px 13px;color:white;background:var(--accent);font-weight:720}.secondary{background:#202638;color:var(--text);border:1px solid var(--line)}.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}.row{display:flex;gap:9px;align-items:center}.row>*{flex:1}.mode{display:grid;grid-template-columns:1fr 1fr;gap:8px}.mode button{border:1px solid var(--line);background:#0b0d14;color:var(--muted);border-radius:12px;padding:9px}.mode button.active{background:rgba(124,92,255,.16);border-color:var(--accent);color:var(--text)}
+    .hero{padding:22px;display:grid;gap:18px}.hero h1{font-size:2.2rem;line-height:1.04;letter-spacing:-.03em;text-wrap:balance;margin:0;max-width:760px}.hero p{max-width:760px;color:var(--muted);margin:0}.stage{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(340px,.8fr);gap:16px}.preview{min-height:460px;border:1px solid var(--line);border-radius:20px;background:#0b0d14;overflow:hidden;display:grid;grid-template-rows:auto 1fr}.previewHead{display:flex;justify-content:space-between;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);color:var(--muted)}.canvas{display:grid;place-items:center;padding:22px}.empty{text-align:center;color:var(--muted);max-width:420px}.empty b{display:block;color:var(--text);font-size:1.25rem;margin-bottom:7px}.videoBox{width:min(100%,720px);aspect-ratio:16/9;border-radius:16px;background:linear-gradient(135deg,#1b2030,#10131d);border:1px solid var(--line);display:grid;place-items:center;text-align:center;padding:22px}.download{color:var(--accent2);font-weight:720}.timeline{display:grid;gap:10px}.scene{padding:11px;border:1px solid var(--line);border-radius:12px;background:#0b0d14}.scene b{display:block;margin-bottom:4px}.scene small{color:var(--muted)}
+    .status{display:grid;gap:8px}.step{display:grid;grid-template-columns:18px 1fr;gap:9px;align-items:start;color:var(--muted)}.dot{width:11px;height:11px;border-radius:99px;background:#3c4355;margin-top:5px}.step.done{color:var(--text)}.step.done .dot{background:var(--good)}.step.active .dot{background:var(--accent2);box-shadow:0 0 0 5px rgba(25,198,255,.12)}.package{display:grid;gap:9px}.social{border:1px solid var(--line);border-radius:12px;padding:11px;background:#0b0d14}.social header{display:flex;justify-content:space-between;color:var(--text);margin-bottom:6px}.social p{margin:0;color:var(--muted);font-size:.86rem}.pill{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;padding:3px 8px;color:var(--muted);font-size:.75rem}.modules{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.module{border:1px solid var(--line);border-radius:13px;padding:12px;background:#0b0d14}.module strong{display:block}.module span{color:var(--dim);font-size:.8rem}.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#101522;border:1px solid var(--line);border-radius:12px;padding:10px 14px;color:var(--text);display:none}.toast.show{display:block}
+    @media(max-width:1100px){.shell{grid-template-columns:280px 1fr}.right{grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}.stage{grid-template-columns:1fr}}@media(max-width:760px){.shell{display:block}.top{position:sticky;top:0;z-index:2}.nav{display:none}aside,.right{border:0}.hero{padding:16px}.hero h1{font-size:1.75rem}}
+    @media(prefers-reduced-motion:no-preference){.primary,.secondary,.ghost,.nav a,.mode button{transition:background .18s ease,border-color .18s ease,color .18s ease,transform .18s ease}.primary:hover,.secondary:hover,.ghost:hover{transform:translateY(-1px)}}
+  </style>
 </head>
 <body>
-<div class="app">
-    <div class="topbar">
-        <h1><span>AI</span> Studio</h1>
-        <div class="nav">
-            <a href="/" class="active">Create</a>
-            <a href="/models">Models</a>
-            <a href="/settings">Settings</a>
-            <a href="/projects">Projects</a>
-        </div>
-        <div class="meta"><span id="statusDot" style="color:var(--g)">&#9679;</span> <span id="statusText">Ready</span></div>
-    </div>
+<div class="shell">
+  <div class="top">
+    <div class="brand"><div class="mark">C</div>Canon OS <span>commercial studio</span></div>
+    <nav class="nav"><a href="/" class="active">Build</a><a href="/studio">Image Studio</a><a href="/models">Models</a><a href="/projects">Projects</a><a href="/settings">Settings</a></nav>
+    <span class="pill" id="backendSummary">checking backends</span>
+  </div>
 
-    <div class="panel">
-        <div class="section">
-            <div class="stitle">Mode</div>
-            <div class="modes">
-                <button class="mbtn active" data-mode="text-to-image"><span class="ic">&#127912;</span>Text to Image</button>
-                <button class="mbtn" data-mode="text-to-video"><span class="ic">&#127909;</span>Text to Video</button>
-                <button class="mbtn" data-mode="image-to-image"><span class="ic">&#9998;</span>Image Edit</button>
-                <button class="mbtn" data-mode="image-to-video"><span class="ic">&#9889;</span>Animate</button>
-                <button class="mbtn" data-mode="write"><span class="ic">&#9997;</span>Write</button>
-                <button class="mbtn" data-mode="voiceover"><span class="ic">&#127911;</span>Voice</button>
-            </div>
-        </div>
+  <aside class="stack">
+    <section class="card">
+      <div class="label"><b>1. Brand input</b><span>required</span></div>
+      <div class="drop" id="drop"><strong>Drop product/brand image</strong><span class="hint" id="fileName">PNG, JPG, WebP</span><input id="image" type="file" accept="image/png,image/jpeg,image/webp"></div>
+    </section>
+    <section class="card">
+      <label class="label" for="productType"><b>Product type</b><span>used in script</span></label>
+      <input class="control" id="productType" value="premium coffee" maxlength="80">
+    </section>
+    <section class="card">
+      <label class="label" for="tagline"><b>Campaign angle</b><span>optional</span></label>
+      <textarea class="control" id="tagline" maxlength="200" placeholder="The one sentence that should drive the commercial.">Brew a better day.</textarea>
+    </section>
+    <section class="card">
+      <div class="label"><b>2. Render mode</b><span>flash first</span></div>
+      <div class="mode"><button id="draftMode" class="active" type="button">Draft package</button><button id="renderMode" type="button">Final MP4</button></div>
+      <p class="hint">Draft is fast: brand, script, storyboard, social copy. Final renders the complete 30-second MP4.</p>
+    </section>
+    <section class="card">
+      <div class="label"><b>3. Model routing</b><span>local/API</span></div>
+      <div class="row"><select class="control" id="modality"><option>text</option><option>image</option><option>video</option><option>tts</option></select><select class="control" id="backend"><option>local</option><option>api</option></select></div>
+      <input class="control" id="keyRef" placeholder="vault://provider-key-ref for API" style="margin-top:8px">
+      <button class="secondary" type="button" onclick="selectBackend()" style="width:100%;margin-top:8px">Apply backend route</button>
+    </section>
+    <button class="primary" id="run" type="button" onclick="runCampaign()">Generate commercial</button>
+  </aside>
 
-        <div class="section" id="modelSection">
-            <div class="stitle">Model</div>
-            <select id="modelSelect"></select>
-            <div class="meta" id="modelMeta" style="margin-top:6px"></div>
-        </div>
+  <main>
+    <section class="hero">
+      <div>
+        <h1>Turn one brand image into a complete commercial campaign.</h1>
+        <p>Canon OS extracts brand DNA, writes a timed 30-second script, builds a storyboard, renders an MP4 when requested, and packages social-ready captions for the launch channels.</p>
+      </div>
+      <div class="stage">
+        <section class="preview">
+          <div class="previewHead"><span id="campaignTitle">Campaign output</span><span id="quality">waiting</span></div>
+          <div class="canvas" id="output"><div class="empty"><b>No campaign yet.</b>Upload a product image and generate a draft package. Use final MP4 when the story is right.</div></div>
+        </section>
+        <section class="card">
+          <div class="label"><b>Pipeline</b><span id="pipelineState">idle</span></div>
+          <div class="status" id="steps">
+            <div class="step" data-step="brand"><span class="dot"></span><span>Extract brand palette and product identity</span></div>
+            <div class="step" data-step="script"><span class="dot"></span><span>Write 10-scene, 30-second commercial</span></div>
+            <div class="step" data-step="storyboard"><span class="dot"></span><span>Build storyboard and quality check</span></div>
+            <div class="step" data-step="render"><span class="dot"></span><span>Render/assemble downloadable video</span></div>
+            <div class="step" data-step="social"><span class="dot"></span><span>Package social posts and publish handoff</span></div>
+          </div>
+          <div class="row" style="margin-top:14px"><button class="ghost" type="button" onclick="copySummary()">Copy brief</button><button class="ghost" type="button" onclick="packageSocial()">Refresh socials</button></div>
+        </section>
+      </div>
+      <section class="card">
+        <div class="label"><b>Storyboard</b><span id="duration">0s</span></div>
+        <div class="timeline" id="storyboard"></div>
+      </section>
+    </section>
+  </main>
 
-        <div class="section" id="uploadSection" style="display:none">
-            <div class="stitle" id="uploadTitle">Reference Image</div>
-            <div class="upload" id="uploadZone">
-                <div style="font-size:2em;margin-bottom:8px">&#128193;</div>
-                <div style="font-size:.85em;color:var(--d)">Drop image or click to upload</div>
-                <input type="file" id="uploadInput" accept="image/*,video/*">
-            </div>
-            <div id="uploadPreview"></div>
-        </div>
-
-        <div class="section">
-            <div class="stitle">Prompt</div>
-            <textarea id="promptInput" placeholder="Describe what you want to create..."></textarea>
-            <div style="display:flex;gap:6px;margin-top:8px">
-                <button style="padding:6px 12px;border:1px solid var(--b);border-radius:6px;background:none;color:var(--d);cursor:pointer;font-size:.75em" onclick="enhancePrompt()">Enhance</button>
-                <button style="padding:6px 12px;border:1px solid var(--b);border-radius:6px;background:none;color:var(--d);cursor:pointer;font-size:.75em" onclick="clearPrompt()">Clear</button>
-            </div>
-        </div>
-
-        <div class="section" id="negSection">
-            <div class="stitle">Negative Prompt</div>
-            <textarea class="neg" id="negPrompt" placeholder="What to avoid..."></textarea>
-        </div>
-
-        <div class="section" id="settingsSection">
-            <div class="stitle">Settings</div>
-            <div class="slider-g">
-                <label><span>Guidance Scale</span><span id="cfgVal">7.5</span></label>
-                <input type="range" id="cfgSlider" min="1" max="20" step="0.5" value="7.5" oninput="document.getElementById('cfgVal').textContent=this.value">
-            </div>
-            <div class="slider-g" style="margin-top:8px">
-                <label><span>Steps</span><span id="stepsVal">25</span></label>
-                <input type="range" id="stepsSlider" min="10" max="50" step="1" value="25" oninput="document.getElementById('stepsVal').textContent=this.value">
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
-                <div><label style="font-size:.8em;color:var(--d)">Width</label>
-                    <select id="widthSelect" style="padding:6px"><option value="512">512</option><option value="768">768</option><option value="1024" selected>1024</option><option value="1280">1280</option></select></div>
-                <div><label style="font-size:.8em;color:var(--d)">Height</label>
-                    <select id="heightSelect" style="padding:6px"><option value="512">512</option><option value="768">768</option><option value="1024" selected>1024</option><option value="1280">1280</option></select></div>
-            </div>
-            <div style="margin-top:8px"><label style="font-size:.8em;color:var(--d)">Batch Count</label>
-                <select id="batchSelect" style="padding:6px"><option value="1">1</option><option value="2">2</option><option value="4">4</option><option value="8">8</option><option value="16">16</option></select></div>
-        </div>
-
-        <button class="gbtn" id="generateBtn" onclick="generate()">Generate<span style="font-size:.75em;font-weight:400;opacity:.8;display:block" id="genSub">Text to Image</span></button>
-    </div>
-
-    <div class="canvas">
-        <div class="gview" id="genView">
-            <div class="ph" id="placeholder"><div class="ic">&#127912;</div><p>Describe what you want, pick a model, hit Generate.</p><p style="margin-top:12px;font-size:.8em">Or upload an image to edit, animate, or transform.</p></div>
-            <div class="pov hidden" id="progressOv">
-                <div class="pring"><svg width="80" height="80"><circle class="bg" cx="40" cy="40" r="36"></circle><circle class="fg" cx="40" cy="40" r="36" stroke-dasharray="226.2" stroke-dashoffset="226.2" id="progCirc"></circle></svg><span class="ppct" id="progPct">0%</span></div>
-                <div class="ptxt" id="progTxt">Initializing...</div>
-            </div>
-        </div>
-        <div class="toolbar">
-            <div class="acts">
-                <button onclick="downloadCurrent()">Save</button>
-                <button onclick="useAsInput()">Use as Input</button>
-                <button class="pri" onclick="exportToProject()">Export</button>
-            </div>
-            <div class="meta" id="genInfo">Ready</div>
-        </div>
-        <div class="hstrip" id="histStrip"></div>
-    </div>
+  <aside class="right stack">
+    <section class="card">
+      <div class="label"><b>Social distribution</b><span>connector-ready</span></div>
+      <div class="package" id="socials"><p class="hint">Generate a campaign to see platform-specific packages.</p></div>
+    </section>
+    <section class="card">
+      <div class="label"><b>Skeleton infrastructure</b><span>scaffold</span></div>
+      <div class="modules">
+        <div class="module"><strong>Auth/RBAC</strong><span>API scaffold live</span></div>
+        <div class="module"><strong>Projects</strong><span>asset store ready</span></div>
+        <div class="module"><strong>Queue</strong><span>job endpoint scaffold</span></div>
+        <div class="module"><strong>Analytics</strong><span>schema reserved</span></div>
+        <div class="module"><strong>Social OAuth</strong><span>connectors next</span></div>
+        <div class="module"><strong>Billing</strong><span>future module</span></div>
+      </div>
+    </section>
+  </aside>
 </div>
+<div class="toast" id="toast"></div>
 <script>
-let S={mode:'text-to-image',model:'',file:null,gen:[],idx:-1,busy:false};
-const M={
-    'text-to-image':[{id:'flux1-dev',n:'Flux.1 Dev',q:'Excellent',s:'~25s'},{id:'sdxl',n:'SDXL 1.0',q:'Professional',s:'~10s'}],
-    'text-to-video':[{id:'cogvideox-5b',n:'CogVideoX-5B',q:'Good',s:'~15min'}],
-    'image-to-image':[{id:'flux1-dev',n:'Flux.1 Dev (img2img)',q:'Excellent',s:'~20s'},{id:'sdxl',n:'SDXL 1.0 (img2img)',q:'Professional',s:'~8s'}],
-    'image-to-video':[{id:'svd',n:'Stable Video Diffusion',q:'Good',s:'~6min'},{id:'animatediff',n:'AnimateDiff',q:'Decent',s:'~4min'}],
-    'write':[{id:'llama-3.1-70b',n:'Llama 3.1 70B',q:'Excellent',s:'Real-time'},{id:'gemma-2-27b',n:'Gemma2 27B',q:'Excellent',s:'Fast'},{id:'llama-3.1-8b',n:'Llama 3.1 8B',q:'Good',s:'Very fast'}],
-    'voiceover':[{id:'af_heart',n:'Heart (Warm)',q:'Very good',s:'Real-time'},{id:'af_bella',n:'Bella (Clear)',q:'Very good',s:'Real-time'},{id:'am_adam',n:'Adam (Warm)',q:'Very good',s:'Real-time'}]
-};
-const PH={'text-to-image':'Product photo of headphones, studio lighting','text-to-video':'Dog running through field at sunset','image-to-image':'Transform into oil painting style','image-to-video':'Animate with gentle camera pan','write':'Write 30s commercial for headphones...','voiceover':'Paste your script here...'};
-
-document.addEventListener('DOMContentLoaded',()=>{setMode('text-to-image');setupUpload()});
-
-document.querySelectorAll('.mbtn').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
-
-function setMode(m){
-    S.mode=m;
-    document.querySelectorAll('.mbtn').forEach(b=>b.classList.remove('active'));
-    document.querySelector(`[data-mode="${m}"]`).classList.add('active');
-    const md=M[m]||[];
-    document.getElementById('modelSelect').innerHTML=md.map(x=>`<option value="${x.id}">${x.n} (${x.q}, ${x.s})</option>`).join('');
-    S.model=md[0]?.id||'';
-    document.getElementById('modelMeta').textContent=md[0]?`Quality: ${md[0].q} | Speed: ${md[0].s}`:'';
-    const isUp=m==='image-to-image'||m==='image-to-video';
-    document.getElementById('uploadSection').style.display=isUp?'block':'none';
-    document.getElementById('uploadTitle').textContent=m==='image-to-image'?'Source Image':'Reference Image';
-    const isVis=!['write','voiceover'].includes(m);
-    document.getElementById('settingsSection').style.display=isVis?'block':'none';
-    document.getElementById('negSection').style.display=isVis?'block':'none';
-    document.getElementById('promptInput').placeholder=PH[m]||'Describe...';
-    const labels={'text-to-image':'Generate Image','text-to-video':'Generate Video','image-to-image':'Edit Image','image-to-video':'Animate Image','write':'Write','voiceover':'Generate Voiceover'};
-    document.getElementById('genSub').textContent=labels[m]||'Generate';
-}
-
-function setupUpload(){
-    const z=document.getElementById('uploadZone'),i=document.getElementById('uploadInput');
-    z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('dg')});
-    z.addEventListener('dragleave',()=>z.classList.remove('dg'));
-    z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('dg');if(e.dataTransfer.files.length)handleFile(e.dataTransfer.files[0])});
-    i.addEventListener('change',e=>{if(e.target.files.length)handleFile(e.target.files[0])});
-}
-
-function handleFile(f){
-    S.file=f;const u=URL.createObjectURL(f),p=document.getElementById('uploadPreview');
-    p.innerHTML=f.type.startsWith('video/')?`<div style="margin-top:10px;position:relative;display:inline-block"><video src="${u}" controls muted style="max-height:120px;border-radius:8px"></video><button onclick="S.file=null;document.getElementById('uploadPreview').innerHTML=''" style="position:absolute;top:-8px;right:-8px;width:20px;height:20px;border-radius:50%;background:var(--r);color:#fff;border:none;cursor:pointer;font-size:.7em">x</button></div>`:`<div style="margin-top:10px;position:relative;display:inline-block"><img src="${u}" style="max-height:120px;border-radius:8px"><button onclick="S.file=null;document.getElementById('uploadPreview').innerHTML=''" style="position:absolute;top:-8px;right:-8px;width:20px;height:20px;border-radius:50%;background:var(--r);color:#fff;border:none;cursor:pointer;font-size:.7em">x</button></div>`;
-}
-
-async function generate(){
-    if(S.busy)return;
-    const p=document.getElementById('promptInput').value.trim();
-    if(!p){alert('Enter a prompt');return}
-    const needsUp=S.mode==='image-to-image'||S.mode==='image-to-video';
-    if(needsUp&&!S.file){alert('Upload an image first');return}
-    S.busy=true;
-    document.getElementById('generateBtn').disabled=true;
-    document.getElementById('progressOv').classList.remove('hidden');
-    try{
-        if(S.mode==='write')await genText(p);
-        else if(S.mode==='voiceover')await genVoice(p);
-        else await genVisual(p);
-    }catch(e){alert('Error: '+e.message)}
-    S.busy=false;
-    document.getElementById('generateBtn').disabled=false;
-    document.getElementById('progressOv').classList.add('hidden');
-}
-
-async function genText(p){
-    setProg(30,'Writing...');
-    const r=await fetch('/api/text/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p,model:S.model})});
-    const d=await r.json();setProg(100);
-    if(d.error){alert(d.error);return}
-    showContent(`<div class="txt">${d.response}</div>`,'text',d.response);
-}
-
-async function genVoice(p){
-    setProg(20,'Generating voice...');
-    const r=await fetch('/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:p,voice:S.model})});
-    const d=await r.json();setProg(100);
-    if(d.error){alert(d.error);return}
-    showContent(`<div style="text-align:center;padding:32px"><audio controls autoplay src="${d.url}" style="width:100%;max-width:500px"></audio></div>`,'audio',d.url);
-}
-
-async function genVisual(p){
-    const fd=new FormData();
-    fd.append('mode',S.mode);fd.append('model',S.model);fd.append('prompt',p);
-    fd.append('negative_prompt',document.getElementById('negPrompt').value);
-    fd.append('cfg',document.getElementById('cfgSlider').value);
-    fd.append('steps',document.getElementById('stepsSlider').value);
-    fd.append('width',document.getElementById('widthSelect').value);
-    fd.append('height',document.getElementById('heightSelect').value);
-    if(S.file)fd.append('file',S.file);
-    let pg=0;const iv=setInterval(()=>{pg=Math.min(pg+3,90);setProg(pg,pg<30?'Loading...':pg<60?'Sampling...':'Decoding...')},1000);
-    const r=await fetch('/api/generate',{method:'POST',body:fd});
-    const d=await r.json();clearInterval(iv);setProg(100);
-    if(d.error){alert(d.error);return}
-    const t=S.mode.includes('video')?'video':'image';
-    showContent(t==='video'?`<video src="${d.url}" controls autoplay muted style="max-width:100%;max-height:100%;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.5)"></video>`:`<img src="${d.url}" style="max-width:100%;max-height:100%;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.5)">`,t,d.url);
-}
-
-function showContent(html,type,url){
-    const v=document.getElementById('genView');
-    const ph=document.getElementById('placeholder');if(ph)ph.style.display='none';
-    v.querySelectorAll('.gc').forEach(e=>e.remove());
-    v.insertAdjacentHTML('afterbegin',`<div class="gc">${html}</div>`);
-    const item={id:Date.now(),type,url,ts:new Date().toISOString()};
-    S.gen.unshift(item);S.idx=0;renderHist();
-    document.getElementById('genInfo').textContent=`${S.model} | ${new Date().toLocaleTimeString()}`;
-}
-
-function setProg(pct,txt){
-    const c=document.getElementById('progCirc'),t=document.getElementById('progPct');
-    c.style.strokeDashoffset=226.2-(pct/100)*226.2;t.textContent=Math.round(pct)+'%';
-    if(txt)document.getElementById('progTxt').textContent=txt;
-}
-
-function renderHist(){
-    document.getElementById('histStrip').innerHTML=S.gen.map((g,i)=>`<div class="hitem ${i===S.idx?'active':''}" onclick="selectHist(${i})">${g.type==='video'?`<video src="${g.url}" muted></video>`:g.type==='audio'?'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.5em">&#127911;</div>':g.type==='text'?'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.5em">&#9997;</div>':`<img src="${g.url}">`}</div>`).join('');
-}
-
-function selectHist(i){
-    S.idx=i;const g=S.gen[i];
-    const v=document.getElementById('genView');
-    v.querySelectorAll('.gc').forEach(e=>e.remove());
-    const ph=document.getElementById('placeholder');if(ph)ph.style.display='none';
-    if(g.type==='video')v.insertAdjacentHTML('afterbegin',`<div class="gc"><video src="${g.url}" controls autoplay muted style="max-width:100%;max-height:100%;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.5)"></video></div>`);
-    else if(g.type==='image')v.insertAdjacentHTML('afterbegin',`<div class="gc"><img src="${g.url}" style="max-width:100%;max-height:100%;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.5)"></div>`);
-    else if(g.type==='audio')v.insertAdjacentHTML('afterbegin',`<div class="gc"><div style="text-align:center;padding:32px"><audio controls src="${g.url}" style="width:100%;max-width:500px"></audio></div></div>`);
-    else if(g.type==='text')v.insertAdjacentHTML('afterbegin',`<div class="gc"><div class="txt">${g.text||''}</div></div>`);
-    renderHist();
-}
-
-function downloadCurrent(){if(S.idx<0)return;const a=document.createElement('a');a.href=S.gen[S.idx].url;a.download='studio_'+S.gen[S.idx].id+'.png';a.click()}
-function useAsInput(){if(S.idx<0)return;setMode('image-to-image')}
-function exportToProject(){if(S.idx<0){alert('Nothing to export');return}alert('Exported!')}
-async function enhancePrompt(){const p=document.getElementById('promptInput').value.trim();if(!p)return;try{const r=await fetch('/api/enhance-prompt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p,mode:S.mode})});const d=await r.json();if(d.enhanced)document.getElementById('promptInput').value=d.enhanced}catch(e){document.getElementById('promptInput').value=p+', professional, 8k, ultra detailed'}}
-function clearPrompt(){document.getElementById('promptInput').value='';document.getElementById('negPrompt').value=''}
+let campaign=null,renderFinal=false;
+const $=id=>document.getElementById(id);
+document.addEventListener('DOMContentLoaded',()=>{loadBackends();$('image').addEventListener('change',e=>{$('fileName').textContent=e.target.files[0]?.name||'PNG, JPG, WebP'});$('draftMode').onclick=()=>setRender(false);$('renderMode').onclick=()=>setRender(true)});
+function setRender(next){renderFinal=next;$('draftMode').classList.toggle('active',!next);$('renderMode').classList.toggle('active',next)}
+function toast(msg){$('toast').textContent=msg;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),2600)}
+function mark(name,state='done'){document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));const el=document.querySelector(`[data-step="${name}"]`);if(el){el.classList.add(state);if(state==='active')el.classList.add('active')}}
+function resetSteps(){document.querySelectorAll('.step').forEach(s=>s.className='step')}
+async function loadBackends(){try{const d=await (await fetch('/api/v1/backends')).json();$('backendSummary').textContent=d.modalities.map(x=>`${x.modality}:${x.effective}`).join(' · ')}catch{$('backendSummary').textContent='backend status unavailable'}}
+async function selectBackend(){const body={modality:$('modality').value,backend:$('backend').value,provider_key_ref:$('keyRef').value.trim()};const r=await fetch('/api/v1/backends/select',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const d=await r.json();if(!r.ok){toast(d.error);return}toast(`${body.modality} now routes to ${d.effective_backend}`);loadBackends()}
+async function runCampaign(){const file=$('image').files[0];if(!file){toast('Upload a brand/product image first.');return}resetSteps();$('run').disabled=true;$('pipelineState').textContent='running';mark('brand','active');const fd=new FormData();fd.append('image',file);fd.append('product_type',$('productType').value.trim()||'product');fd.append('tagline',$('tagline').value.trim());fd.append('render',String(renderFinal));try{const r=await fetch('/api/instant-ad',{method:'POST',body:fd});mark('brand');mark('script','active');const d=await r.json();if(!r.ok){throw new Error(d.error||'generation failed')}campaign=d;mark('script');mark('storyboard');if(d.video_url){mark('render')}mark('social');$('pipelineState').textContent='complete';renderCampaign(d)}catch(e){$('pipelineState').textContent='failed';toast(e.message)}finally{$('run').disabled=false}}
+function renderCampaign(d){$('campaignTitle').textContent=`${d.brand_analysis.product_type||'Product'} commercial`;$('quality').textContent=d.quality?.passed?'quality passed':'needs review';$('duration').textContent=`${d.duration_seconds}s`;const colors=(d.brand_analysis.colors||[]).map(c=>`<span class="pill" style="border-color:${c};color:${c}">${c}</span>`).join(' ');$('output').innerHTML=d.video_url?`<div class="videoBox"><div><b>Final commercial rendered</b><p><a class="download" href="${d.video_url}" target="_blank" rel="noreferrer">Download MP4</a></p><p class="hint">${d.video_resolution} · ${d.video_size_mb}MB</p>${colors}</div></div>`:`<div class="videoBox"><div><b>Draft campaign package ready</b><p class="hint">Review storyboard, then switch to Final MP4.</p>${colors}</div></div>`;$('storyboard').innerHTML=d.storyboard.map(s=>`<div class="scene"><b>Scene ${s.number} · ${s.duration_seconds}s</b><small>${s.visual}</small><p>${s.narration||s.voiceover||''}</p></div>`).join('');renderSocials(d.social_package)}
+function renderSocials(pkg){if(!pkg){$('socials').innerHTML='<p class="hint">No social package yet.</p>';return}$('socials').innerHTML=pkg.platforms.map(p=>`<div class="social"><header><b>${p.label}</b><span class="pill">${p.aspect_ratio}</span></header><p>${p.caption}</p><p class="hint">${p.publish_status} · ${p.next_step}</p></div>`).join('')}
+async function packageSocial(){if(!campaign){toast('Generate a campaign first.');return}const r=await fetch('/api/social/package',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(campaign)});campaign.social_package=await r.json();renderSocials(campaign.social_package);toast('Social package refreshed')}
+async function copySummary(){if(!campaign){toast('Generate a campaign first.');return}const text=`Canon OS campaign\\nDuration: ${campaign.duration_seconds}s\\nScenes: ${campaign.storyboard.length}\\nVideo: ${campaign.video_url||'draft only'}`;await navigator.clipboard?.writeText(text);toast('Campaign brief copied')}
 </script>
 </body>
 </html>

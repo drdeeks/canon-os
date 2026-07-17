@@ -59,6 +59,13 @@ EXPORTS_DIR = CREATOR_HOME / "exports"
 UPLOADS_DIR = CREATOR_HOME / "uploads"
 OUTPUT_DIR = CREATOR_HOME / "output"
 STUDIO_JOBS: dict[str, dict] = {}
+SOCIAL_PLATFORMS = {
+    "tiktok": {"label": "TikTok", "aspect_ratio": "9:16", "max_caption": 2200},
+    "instagram": {"label": "Instagram Reels", "aspect_ratio": "9:16", "max_caption": 2200},
+    "youtube": {"label": "YouTube Shorts", "aspect_ratio": "9:16", "max_caption": 100},
+    "x": {"label": "X", "aspect_ratio": "16:9", "max_caption": 280},
+    "linkedin": {"label": "LinkedIn", "aspect_ratio": "1:1", "max_caption": 3000},
+}
 
 DEFAULT_SETTINGS = {
     "display_name": "Creator",
@@ -231,6 +238,31 @@ def _studio_backend_reference(path: Path | None) -> str | None:
     return path.name
 
 
+def _social_package(brand: dict, script: list[dict], video_url: str | None = None) -> dict:
+    """Create publish-ready social drafts without claiming external posting."""
+    product = brand.get("product_type") or "product"
+    palette = brand.get("colors") or []
+    def line(scene: dict, fallback: str) -> str:
+        return str(scene.get("voiceover") or scene.get("narration") or scene.get("caption") or fallback)
+    hook = line(script[0], f"Meet the {product} people remember.") if script else f"Meet the {product} people remember."
+    closing = line(script[-1], "Ready when your campaign is.") if script else "Ready when your campaign is."
+    hashtags = [f"#{product.replace(' ', '')}", "#CanonOS", "#MadeWithAI", "#Commercial"]
+    packages = []
+    for key, platform in SOCIAL_PLATFORMS.items():
+        caption = f"{hook} {closing} {' '.join(hashtags[:3])}"
+        packages.append({
+            "platform": key,
+            "label": platform["label"],
+            "aspect_ratio": platform["aspect_ratio"],
+            "caption": caption[:platform["max_caption"]],
+            "hashtags": hashtags,
+            "asset_url": video_url,
+            "publish_status": "ready_to_connect" if video_url else "draft_ready",
+            "next_step": "Connect account and schedule publish" if video_url else "Render final MP4 first",
+        })
+    return {"platforms": packages, "brand_palette": palette, "status": "packaged"}
+
+
 # ============================================================================
 # Routes: Pages
 # ============================================================================
@@ -342,6 +374,9 @@ def instant_ad():
                 "video_resolution": "1920x1080",
                 "video_size_mb": round(output.stat().st_size / (1024 * 1024), 3),
             })
+        payload["social_package"] = _social_package(
+            payload["brand_analysis"], payload["script"], payload.get("video_url")
+        )
         return jsonify(payload), 200
     except CoreAIError as error:
         return jsonify({"error": str(error)}), 400
@@ -362,6 +397,17 @@ def select_backend():
                                        data.get("provider_key_ref")))
     except ValueError as error:
         return jsonify({"error": str(error)}), 400
+
+
+@app.route("/api/social/package", methods=["POST"])
+def social_package():
+    """Package a generated commercial for social distribution connectors."""
+    data = request.get_json(silent=True) or {}
+    brand = data.get("brand_analysis") or {}
+    script = data.get("script") or []
+    if not isinstance(brand, dict) or not isinstance(script, list):
+        return jsonify({"error": "INVALID_SOCIAL_PACKAGE: brand_analysis and script are required"}), 400
+    return jsonify(_social_package(brand, script, data.get("video_url"))), 200
 
 
 @app.route("/api/v1/studio/generate", methods=["POST"])

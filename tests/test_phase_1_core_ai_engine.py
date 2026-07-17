@@ -208,6 +208,8 @@ class CoreAIEngineTest(unittest.TestCase):
         self.assertEqual(payload["duration_seconds"], 30)
         self.assertEqual(len(payload["storyboard"]), 10)
         self.assertTrue(payload["quality"]["passed"])
+        self.assertEqual(payload["social_package"]["status"], "packaged")
+        self.assertGreaterEqual(len(payload["social_package"]["platforms"]), 5)
 
     def test_dashboard_render_endpoint_delivers_downloadable_mp4(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -244,6 +246,34 @@ class CoreAIEngineTest(unittest.TestCase):
             self.assertEqual(download.status_code, 200)
             self.assertEqual(download.mimetype, "video/mp4")
             download.close()
+
+    def test_workspace_frontend_exposes_complete_commercial_flow(self):
+        page = app.test_client().get("/").get_data(as_text=True)
+
+        self.assertIn("Turn one brand image into a complete commercial campaign", page)
+        self.assertIn("Generate commercial", page)
+        self.assertIn("fetch('/api/instant-ad'", page)
+        self.assertIn("fetch('/api/v1/backends/select'", page)
+        self.assertIn("fetch('/api/social/package'", page)
+        self.assertIn("Social distribution", page)
+        self.assertIn("Skeleton infrastructure", page)
+
+    def test_social_package_endpoint_returns_platform_handoff(self):
+        response = app.test_client().post("/api/social/package", json={
+            "brand_analysis": {"product_type": "coffee", "colors": ["#112233", "#F5BE28"]},
+            "script": [{"voiceover": "Wake up with better coffee."},
+                       {"voiceover": "Brew a better day."}],
+            "video_url": "/output/commercial.mp4",
+        })
+
+        self.assertEqual(response.status_code, 200, response.get_json())
+        payload = response.get_json()
+        platforms = {item["platform"]: item for item in payload["platforms"]}
+        self.assertIn("tiktok", platforms)
+        self.assertIn("instagram", platforms)
+        self.assertIn("youtube", platforms)
+        self.assertEqual(platforms["tiktok"]["asset_url"], "/output/commercial.mp4")
+        self.assertEqual(platforms["tiktok"]["publish_status"], "ready_to_connect")
 
     def test_backend_switch_endpoint_requires_key_reference_and_switches(self):
         original_registry = dashboard_app.registry
