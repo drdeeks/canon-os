@@ -13,52 +13,25 @@ checksum-verified asset. Its Phase-1 validation gate is `canvas renders`.
 
 ## Repair completed
 
-The failed review's blocker is repaired: the Studio screen now offers
-`Generate flash preview` and `Approve generated final` controls. They submit
-the prompt and brand palette directly to `/api/v1/studio/generate`, so no
-source image or mask is required for generation. Masked edit controls remain
-separate and continue to require a source image and a non-empty mask.
-
-This repair is now guarded by a UI contract that isolates the `generate()`
-handler and verifies it carries the brand palette while neither reading a
-source file nor serializing a mask. This closes the review gap left by the
-former API-only test.
+The failed review's flash-before-final blocker is repaired. A final Studio
+render now requires `approved=true`, a completed flash `preview_job_id`, and a
+server-computed signature matching mode, prompt, palette, source/mask content,
+dimensions, and the selected image backend. This is enforced for both
+prompt-based generation and masked editing; a client cannot bypass it by
+enabling the final button or submitting `approved=true` directly. The Studio
+page keeps both final controls disabled until its corresponding flash preview
+finishes and sends that preview job id with the final request.
 
 ## Files changed
 
-- `app/dashboard/app.py` — adds the documented Studio generate, edit, and job
-  status APIs; validates and forwards source/mask uploads; saves generated
-  assets and reports SHA-256 checksums; packages generated commercials for
-  social-channel handoff without falsely claiming external publishing.
-- `app/dashboard/core_ai.py` — adds MOD-021 mode, mask, tier, and checksum
-  contracts while preserving the existing Core AI ad pipeline.
-- `app/dashboard/backends/image.py` — adds masked workflows for ComfyUI and
-  Automatic1111/Forge adapters, including inpaint, outpaint, and restyle
-  dispatch.
-- `app/dashboard/backends/demo.py` — keeps the provider-free image adapter
-  compatible with the expanded image adapter contract.
-- `app/dashboard/templates/studio.html` — exposes a prompt-plus-brand-palette
-  Studio generation path that posts directly to `/api/v1/studio/generate`,
-  plus the separate masked-edit path for `/api/v1/studio/inpaint`; implements
-  separate source, mask, and preview canvases; provides functional brush,
-  lasso (with close action), and full-frame masks; and submits the resulting
-  PNG mask to the versioned Studio API.
-- `app/dashboard/templates/workspace.html` — replaces the generic prompt
-  playground with a focused commercial-builder UI: brand upload, campaign
-  angle, draft/final MP4 mode, local/API backend routing, pipeline status,
-  storyboard review, downloadable commercial output, social package panel, and
-  visible scaffold modules for the deferred platform surface.
-- `tests/test_phase_1_core_ai_engine.py` — covers Studio generate, approved
-  mask-based final restyle, persisted checksum/job lookup, empty-mask
-  rejection, final-approval enforcement, the `/studio` UI generate controls
-  and `/api/v1/studio/generate` fetch path; verifies the UI generation handler
-  sends the palette without reading a source image or submitting a mask; covers
-  all three canvas mask controls,
-  the `/` commercial-builder frontend, local/API backend-selection controls,
-  social package endpoint, and social handoff states alongside existing
-  Phase-1 gates.
+- `app/dashboard/app.py` — binds each final Studio request to a matching,
+  completed flash job before invoking the image adapter.
+- `app/dashboard/templates/studio.html` — disables final actions until a flash
+  result exists and supplies its job id to the final request.
+- `tests/test_phase_1_core_ai_engine.py` — verifies valid generate/edit
+  preview-to-final flows and rejects both missing and mismatched previews.
 - `docs/autonomy/evidence/13-phase-01-Core-AI-Engine.md` — records this repair
-  and the validation evidence.
+  and validation evidence.
 
 ## Commands run with results
 

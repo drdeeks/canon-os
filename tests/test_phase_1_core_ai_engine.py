@@ -319,11 +319,20 @@ class CoreAIEngineTest(unittest.TestCase):
             generated = client.post("/api/v1/studio/generate", data={"prompt": "a brand hero image"})
             self.assertEqual(generated.status_code, 200, generated.get_json())
             self.assertEqual(generated.get_json()["tier"], "flash")
+            generated_preview_id = generated.get_json()["job_id"]
+            with source.open("rb") as source_file, mask.open("rb") as mask_file:
+                preview = client.post("/api/v1/studio/inpaint", data={
+                    "source_image": (source_file, "source.png"), "mask": (mask_file, "mask.png"),
+                    "prompt": "replace the selected background", "mode": "restyle",
+                    "brand_palette": "#112233, #F5BE28",
+                }, content_type="multipart/form-data")
+            self.assertEqual(preview.status_code, 200, preview.get_json())
             with source.open("rb") as source_file, mask.open("rb") as mask_file:
                 edited = client.post("/api/v1/studio/inpaint", data={
                     "source_image": (source_file, "source.png"), "mask": (mask_file, "mask.png"),
                     "prompt": "replace the selected background", "mode": "restyle",
                     "brand_palette": "#112233, #F5BE28", "tier": "final", "approved": "true",
+                    "preview_job_id": preview.get_json()["job_id"],
                 }, content_type="multipart/form-data")
             self.assertEqual(edited.status_code, 200, edited.get_json())
             job = edited.get_json()
@@ -335,6 +344,17 @@ class CoreAIEngineTest(unittest.TestCase):
             self.assertTrue(saved.is_file())
             self.assertEqual(job["checksum"], checksum_asset(saved))
             self.assertEqual(client.get(f"/api/v1/studio/{job['job_id']}").get_json(), job)
+            approved_generated = client.post("/api/v1/studio/generate", data={
+                "prompt": "a brand hero image", "tier": "final", "approved": "true",
+                "preview_job_id": generated_preview_id,
+            })
+            self.assertEqual(approved_generated.status_code, 200, approved_generated.get_json())
+            mismatched_final = client.post("/api/v1/studio/generate", data={
+                "prompt": "a different brand hero", "tier": "final", "approved": "true",
+                "preview_job_id": generated_preview_id,
+            })
+            self.assertEqual(mismatched_final.status_code, 400)
+            self.assertIn("FLASH_PREVIEW_REQUIRED", mismatched_final.get_json()["error"])
 
     def test_studio_canvas_exposes_brush_lasso_and_full_frame_masks(self):
         """MOD-021 exposes independent prompt generation and all mask interactions."""
@@ -343,6 +363,9 @@ class CoreAIEngineTest(unittest.TestCase):
         page = response.get_data(as_text=True)
         self.assertIn('id="generate-preview"', page)
         self.assertIn('id="generate-final"', page)
+        self.assertIn('id="generate-final" type="button" disabled', page)
+        self.assertIn('id="final" type="button" disabled', page)
+        self.assertIn("preview_job_id", page)
         self.assertIn("async function generate(final)", page)
         self.assertIn("fetch('/api/v1/studio/generate'", page)
         self.assertIn("fd.append('brand_palette'", page)
@@ -358,7 +381,7 @@ class CoreAIEngineTest(unittest.TestCase):
         self.assertIn("maskCtx.arc", page)
         self.assertIn("fd.append('mask',await new Promise(r=>mask.toBlob(r,'image/png'))", page)
 
-    def test_studio_rejects_empty_mask_and_unapproved_final(self):
+    def test_studio_rejects_empty_mask_and_final_without_matching_flash_preview(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             source = self.create_image(root)
@@ -380,6 +403,11 @@ class CoreAIEngineTest(unittest.TestCase):
         })
         self.assertEqual(rejected.status_code, 400)
         self.assertIn("APPROVAL_REQUIRED", rejected.get_json()["error"])
+        unpreviewed = app.test_client().post("/api/v1/studio/generate", data={
+            "prompt": "brand hero", "tier": "final", "approved": "true",
+        })
+        self.assertEqual(unpreviewed.status_code, 400)
+        self.assertIn("FLASH_PREVIEW_REQUIRED", unpreviewed.get_json()["error"])
 
     def test_rejects_taglines_over_two_hundred_characters(self):
         brand = extract_brand(self._temporary_image())

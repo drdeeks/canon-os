@@ -21,6 +21,7 @@ import time
 import logging
 import shutil
 import base64
+import hashlib
 import uuid
 import urllib.request
 import urllib.error
@@ -238,6 +239,20 @@ def _studio_backend_reference(path: Path | None) -> str | None:
     return path.name
 
 
+def _studio_preview_signature(mode: str, prompt: str, palette: str,
+                              source: Path | None, mask: Path | None,
+                              width: int, height: int) -> str:
+    """Bind a final Studio render to the exact flash preview it approves."""
+    image_backend = next((item for item in registry.catalog()["modalities"]
+                          if item["modality"] == "image"), {"effective": "local"})
+    payload = {
+        "backend": image_backend["effective"], "height": height, "mask": checksum_asset(mask) if mask else None,
+        "mode": mode, "palette": palette, "prompt": prompt, "source": checksum_asset(source) if source else None,
+        "width": width,
+    }
+    return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
 def _social_package(brand: dict, script: list[dict], video_url: str | None = None) -> dict:
     """Create publish-ready social drafts without claiming external posting."""
     product = brand.get("product_type") or "product"
@@ -412,7 +427,7 @@ def social_package():
 
 @app.route("/api/v1/studio/generate", methods=["POST"])
 def studio_generate():
-    """Generate a flash preview or an explicitly approved final Studio asset."""
+    """Generate a flash preview or its explicitly approved final Studio asset."""
     return _run_studio_job("generate")
 
 
@@ -448,12 +463,19 @@ def _run_studio_job(mode: str):
             raise CoreAIError("APPROVAL_REQUIRED: final render requires approved=true")
         if requested_tier != "final":
             requested_tier = "flash"
+        width, height = int(data.get("width", 1024)), int(data.get("height", 1024))
+        preview_signature = _studio_preview_signature(mode, prompt, palette, source, mask, width, height)
+        if requested_tier == "final":
+            preview = STUDIO_JOBS.get(str(data.get("preview_job_id", "")))
+            if (not preview or preview.get("status") != "completed" or preview.get("tier") != "flash"
+                    or preview.get("preview_signature") != preview_signature):
+                raise CoreAIError("FLASH_PREVIEW_REQUIRED: render and approve a matching flash preview first")
         job_id = uuid.uuid4().hex
         result = generate_studio_image(
             prompt, mode, registry,
             source_image=_studio_backend_reference(source),
             mask_image=_studio_backend_reference(mask),
-            width=int(data.get("width", 1024)), height=int(data.get("height", 1024)),
+            width=width, height=height,
             tier=requested_tier,
         )
         asset = _copy_studio_asset(result, job_id)
@@ -463,7 +485,8 @@ def _run_studio_job(mode: str):
         job = {"job_id": job_id, "status": "completed", "image_url": f"/output/{asset.name}",
                "resolution": f"{data.get('width', 1024)}x{data.get('height', 1024)}",
                "checksum": checksum, "backend_used": image_backend["effective"],
-               "mode": mode, "tier": requested_tier, "brand_palette": palette}
+               "mode": mode, "tier": requested_tier, "brand_palette": palette,
+               "preview_signature": preview_signature}
         STUDIO_JOBS[job_id] = job
         return jsonify(job), 200
     except (CoreAIError, ValueError) as error:
