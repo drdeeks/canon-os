@@ -20,6 +20,8 @@ import json
 import time
 import logging
 import shutil
+import base64
+import uuid
 import urllib.request
 import urllib.error
 from pathlib import Path
@@ -32,9 +34,12 @@ from core_ai import (
     audio_asset_paths,
     build_storyboard,
     check_brand_consistency,
+    checksum_asset,
     extract_brand,
+    generate_studio_image,
     generate_audio,
     generate_script,
+    mask_has_editable_region,
     render_scenes,
 )
 from model_catalog import get_catalog, find_model, MODEL_CATALOG
@@ -53,6 +58,7 @@ PROJECTS_DIR = CREATOR_HOME / "projects"
 EXPORTS_DIR = CREATOR_HOME / "exports"
 UPLOADS_DIR = CREATOR_HOME / "uploads"
 OUTPUT_DIR = CREATOR_HOME / "output"
+STUDIO_JOBS: dict[str, dict] = {}
 
 DEFAULT_SETTINGS = {
     "display_name": "Creator",
@@ -169,6 +175,62 @@ def _get_installed_models():
     return installed
 
 
+def _save_studio_upload(field: str, required: bool = False) -> Path | None:
+    """Save a Studio multipart image inside the configured upload store."""
+    upload = request.files.get(field)
+    if not upload or not upload.filename:
+        if required:
+            raise CoreAIError(f"{field.upper()}_REQUIRED: provide {field}")
+        return None
+    suffix = Path(upload.filename).suffix.lower() or ".png"
+    if suffix not in {".jpg", ".jpeg", ".png", ".webp"}:
+        raise CoreAIError(f"INVALID_{field.upper()}: use JPG, PNG, or WebP")
+    UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+    destination = UPLOADS_DIR / f"studio-{uuid.uuid4().hex}{suffix}"
+    upload.save(destination)
+    return destination
+
+
+def _copy_studio_asset(result: dict, job_id: str) -> Path:
+    """Persist a generated image locally before publishing its checksum."""
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    destination = OUTPUT_DIR / f"studio-{job_id}.png"
+    encoded = (result.get("images_base64") or [None])[0]
+    if encoded:
+        try:
+            destination.write_bytes(base64.b64decode(encoded.split(",")[-1], validate=True))
+        except (ValueError, OSError) as error:
+            raise CoreAIError("ASSET_SAVE_FAILED: generated image payload is invalid") from error
+    else:
+        candidate = (result.get("images") or [None])[0]
+        if not candidate:
+            raise CoreAIError("ASSET_SAVE_FAILED: backend returned no image")
+        source = Path(candidate)
+        if not source.is_file():
+            source = STUDIO_MOUNT / "exports" / source.name
+        if not source.is_file():
+            raise CoreAIError("ASSET_SAVE_FAILED: generated image is not locally accessible")
+        try:
+            shutil.copy2(source, destination)
+        except OSError as error:
+            raise CoreAIError(f"ASSET_SAVE_FAILED: {error}") from error
+    if not destination.is_file() or not destination.stat().st_size:
+        raise CoreAIError("ASSET_SAVE_FAILED: saved asset is empty")
+    return destination
+
+
+def _studio_backend_reference(path: Path | None) -> str | None:
+    """Expose uploads in the form expected by the selected image adapter."""
+    if path is None:
+        return None
+    if getattr(registry, "_config", {}).get("image") == "automatic1111":
+        return base64.b64encode(path.read_bytes()).decode()
+    backend_uploads = STUDIO_MOUNT / "uploads"
+    backend_uploads.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(path, backend_uploads / path.name)
+    return path.name
+
+
 # ============================================================================
 # Routes: Pages
 # ============================================================================
@@ -180,6 +242,12 @@ def index():
 @app.route("/workspace")
 def workspace():
     return render_template("workspace.html")
+
+
+@app.route("/studio")
+def studio():
+    """MOD-021 canvas surface. It uses the versioned Studio API below."""
+    return render_template("studio.html")
 
 
 @app.route("/dashboard")
@@ -294,6 +362,68 @@ def select_backend():
                                        data.get("provider_key_ref")))
     except ValueError as error:
         return jsonify({"error": str(error)}), 400
+
+
+@app.route("/api/v1/studio/generate", methods=["POST"])
+def studio_generate():
+    """Generate a flash preview or an explicitly approved final Studio asset."""
+    return _run_studio_job("generate")
+
+
+@app.route("/api/v1/studio/inpaint", methods=["POST"])
+def studio_inpaint():
+    """Perform mask-aware inpaint, outpaint, or restyle on a canvas upload."""
+    return _run_studio_job(request.form.get("mode", "inpaint"))
+
+
+@app.route("/api/v1/studio/<job_id>", methods=["GET"])
+def studio_job(job_id: str):
+    job = STUDIO_JOBS.get(job_id)
+    if not job:
+        return jsonify({"error": "JOB_NOT_FOUND"}), 404
+    return jsonify(job)
+
+
+def _run_studio_job(mode: str):
+    """Synchronous local job runner with the documented job-status contract."""
+    data = request.form if request.form else (request.get_json(silent=True) or {})
+    try:
+        prompt = str(data.get("prompt", ""))
+        palette = str(data.get("brand_palette", "")).strip()
+        if palette:
+            prompt = f"{prompt}\nBrand palette: {palette}."
+        source = _save_studio_upload("source_image", required=mode != "generate")
+        mask = _save_studio_upload("mask", required=mode != "generate")
+        if mask and not mask_has_editable_region(mask):
+            raise CoreAIError("INVALID_MASK: mask does not cover any editable region")
+        requested_tier = str(data.get("tier", "flash"))
+        approved = str(data.get("approved", "false")).lower() == "true"
+        if requested_tier == "final" and not approved:
+            raise CoreAIError("APPROVAL_REQUIRED: final render requires approved=true")
+        if requested_tier != "final":
+            requested_tier = "flash"
+        job_id = uuid.uuid4().hex
+        result = generate_studio_image(
+            prompt, mode, registry,
+            source_image=_studio_backend_reference(source),
+            mask_image=_studio_backend_reference(mask),
+            width=int(data.get("width", 1024)), height=int(data.get("height", 1024)),
+            tier=requested_tier,
+        )
+        asset = _copy_studio_asset(result, job_id)
+        checksum = checksum_asset(asset)
+        image_backend = next((item for item in registry.catalog()["modalities"]
+                              if item["modality"] == "image"), {"effective": "local"})
+        job = {"job_id": job_id, "status": "completed", "image_url": f"/output/{asset.name}",
+               "resolution": f"{data.get('width', 1024)}x{data.get('height', 1024)}",
+               "checksum": checksum, "backend_used": image_backend["effective"],
+               "mode": mode, "tier": requested_tier, "brand_palette": palette}
+        STUDIO_JOBS[job_id] = job
+        return jsonify(job), 200
+    except (CoreAIError, ValueError) as error:
+        return jsonify({"error": str(error)}), 400
+    except OSError as error:
+        return jsonify({"error": f"ASSET_SAVE_FAILED: {error}"}), 500
 
 
 @app.route("/api/generate", methods=["POST"])

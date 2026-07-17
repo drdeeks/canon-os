@@ -16,7 +16,8 @@ class ImageBackend(ABC):
     def generate(self, prompt: str, model: str = None, negative: str = "",
                  width: int = 1024, height: int = 1024, steps: int = 25,
                  cfg: float = 7.5, seed: int = -1,
-                 input_image: str = None, mode: str = "txt2img") -> dict:
+                 input_image: str = None, mask_image: str = None,
+                 mode: str = "txt2img") -> dict:
         """Generate image. Returns {"url": "...", "images": [...]}"""
         ...
 
@@ -43,11 +44,15 @@ class ComfyUIBackend(ImageBackend):
         self.client_id = "studio-dashboard"
 
     def generate(self, prompt, model=None, negative="", width=1024, height=1024,
-                 steps=25, cfg=7.5, seed=-1, input_image=None, mode="txt2img"):
+                 steps=25, cfg=7.5, seed=-1, input_image=None, mask_image=None,
+                 mode="txt2img"):
         if seed < 0:
             seed = int(time.time()) % (2**32)
 
-        if mode == "img2img" and input_image:
+        if mode in {"inpaint", "outpaint", "restyle"} and input_image and mask_image:
+            workflow = self._inpaint_workflow(prompt, model, negative, width, height,
+                                              steps, cfg, seed, input_image, mask_image)
+        elif mode == "img2img" and input_image:
             workflow = self._img2img_workflow(prompt, model, negative, width, height,
                                               steps, cfg, seed, input_image)
         else:
@@ -55,6 +60,17 @@ class ComfyUIBackend(ImageBackend):
                                               steps, cfg, seed)
 
         return self._submit_and_wait(workflow)
+
+    def _inpaint_workflow(self, prompt, model, negative, width, height, steps, cfg, seed,
+                          input_image, mask_image):
+        workflow = self._img2img_workflow(prompt, model, negative, width, height, steps, cfg,
+                                          seed, input_image)
+        workflow["9"]["inputs"]["image"] = input_image
+        workflow["13"] = {"class_type": "LoadImage", "inputs": {"image": mask_image}}
+        workflow["10"] = {"class_type": "VAEEncodeForInpaint", "inputs": {
+            "pixels": ["9", 0], "mask": ["13", 1], "vae": ["4", 2], "grow_mask_by": 6,
+        }}
+        return workflow
 
     def _txt2img_workflow(self, prompt, model, negative, width, height, steps, cfg, seed):
         return {
@@ -164,8 +180,10 @@ class A1111Backend(ImageBackend):
         self.url = url.rstrip("/")
 
     def generate(self, prompt, model=None, negative="", width=1024, height=1024,
-                 steps=25, cfg=7.5, seed=-1, input_image=None, mode="txt2img"):
-        endpoint = "img2img" if mode == "img2img" and input_image else "txt2img"
+                 steps=25, cfg=7.5, seed=-1, input_image=None, mask_image=None,
+                 mode="txt2img"):
+        editing = mode in {"img2img", "inpaint", "outpaint", "restyle"} and input_image
+        endpoint = "img2img" if editing else "txt2img"
         payload = {
             "prompt": prompt,
             "negative_prompt": negative,
@@ -175,8 +193,11 @@ class A1111Backend(ImageBackend):
         }
         if model:
             payload["override_settings"] = {"sd_model_checkpoint": model}
-        if mode == "img2img" and input_image:
+        if editing:
             payload["init_images"] = [input_image]  # base64
+        if mask_image:
+            payload.update({"mask": mask_image, "mask_blur": 4,
+                            "inpainting_fill": 1, "inpaint_full_res": True})
 
         try:
             data = json.dumps(payload).encode()

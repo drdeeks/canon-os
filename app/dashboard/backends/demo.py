@@ -42,7 +42,8 @@ class DemoImageBackend(_DemoBase):
     def generate(self, prompt: str, model: str = None, negative: str = "",
                  width: int = 1024, height: int = 1024, steps: int = 25,
                  cfg: float = 7.5, seed: int = -1,
-                 input_image: str = None, mode: str = "txt2img") -> dict:
+                 input_image: str = None, mask_image: str = None,
+                 mode: str = "txt2img") -> dict:
         return {
             "images": ["demo-image-fixture.png"],
             "prompt_id": "demo-image-fixture",

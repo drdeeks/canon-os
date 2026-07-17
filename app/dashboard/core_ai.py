@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import base64
 import colorsys
+import hashlib
 import subprocess
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -173,11 +174,70 @@ def transcribe_audio(audio_path: str | Path, registry: Any) -> dict[str, Any]:
 
 
 def inpaint(image_name: str, prompt: str, registry: Any) -> dict[str, Any]:
-    """Run image editing through the selected image backend."""
+    """Backward-compatible shorthand for an image-to-image edit."""
     result = registry.image.generate(prompt=prompt, input_image=image_name, mode="img2img")
     if result.get("error"):
         raise CoreAIError(f"INPAINT_FAILED: {result['error']}")
     return result
+
+
+def validate_studio_request(prompt: str, mode: str, source_image: str | Path | None,
+                            mask_image: str | Path | None) -> None:
+    """Validate the public MOD-021 modes before dispatching a model job."""
+    if not prompt or len(prompt) > 1000:
+        raise CoreAIError("INVALID_PROMPT: prompt must be between 1 and 1000 characters")
+    if mode not in {"generate", "inpaint", "outpaint", "restyle"}:
+        raise CoreAIError("INVALID_MODE: mode must be generate, inpaint, outpaint, or restyle")
+    if mode != "generate" and not source_image:
+        raise CoreAIError("IMAGE_REQUIRED: source_image is required for image editing")
+    if mode != "generate" and not mask_image:
+        raise CoreAIError("INVALID_MASK: mask does not cover any editable region")
+
+
+def mask_has_editable_region(mask_path: str | Path) -> bool:
+    """Return whether a canvas mask contains at least one selected pixel."""
+    try:
+        with Image.open(mask_path) as mask:
+            if "A" in mask.getbands():
+                return mask.getchannel("A").getextrema()[1] > 0
+            return mask.convert("L").getextrema()[1] > 0
+    except (OSError, ValueError) as error:
+        raise CoreAIError("INVALID_MASK: mask must be a readable image") from error
+
+
+def generate_studio_image(prompt: str, mode: str, registry: Any, *, source_image: str | None = None,
+                          mask_image: str | None = None, width: int = 1024,
+                          height: int = 1024, tier: str = "flash") -> dict[str, Any]:
+    """Dispatch generation/editing while preserving mode and mask semantics."""
+    validate_studio_request(prompt, mode, source_image, mask_image)
+    # Some adapters receive the uploaded mask by backend-local filename.  The
+    # Flask boundary validates the original file; validate again here whenever
+    # a directly accessible path is supplied.
+    if mask_image and Path(mask_image).is_file() and not mask_has_editable_region(mask_image):
+        raise CoreAIError("INVALID_MASK: mask does not cover any editable region")
+    if tier not in {"flash", "final"}:
+        raise CoreAIError("INVALID_TIER: tier must be flash or final")
+    result = registry.image.generate(
+        prompt=prompt,
+        input_image=source_image,
+        mask_image=mask_image,
+        mode="txt2img" if mode == "generate" else mode,
+        width=width,
+        height=height,
+        steps=12 if tier == "flash" else 30,
+    )
+    if result.get("error"):
+        raise CoreAIError(f"IMAGE_GENERATION_FAILED: {result['error']}")
+    return result
+
+
+def checksum_asset(path: str | Path) -> str:
+    """Compute the required SHA-256 integrity value for a saved asset."""
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as asset:
+        for chunk in iter(lambda: asset.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def check_brand_consistency(brand: BrandAnalysis, storyboard: Iterable[dict[str, Any]]) -> dict[str, Any]:

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Canon OS — Image Studio</title>
+  <style>
+    body{font:16px system-ui,sans-serif;max-width:980px;margin:2rem auto;padding:0 1rem;background:#10131a;color:#edf1f7}main{display:grid;gap:1rem}canvas{max-width:100%;border:1px solid #5e6b82;cursor:crosshair;background:#202633}label{display:grid;gap:.4rem}textarea,button,select,input{font:inherit;padding:.6rem}button{cursor:pointer;background:#8066ff;color:white;border:0;border-radius:.3rem}#result img{max-width:100%;margin-top:1rem}.row{display:flex;gap:1rem;flex-wrap:wrap}.row>*{flex:1}
+  </style>
+</head>
+<body><main>
+  <h1>Image &amp; Photo Studio</h1>
+  <p>Upload an image, paint the region to edit, then preview. Final rendering is enabled only after approval.</p>
+  <div class="row"><label>Source image <input id="source" type="file" accept="image/png,image/jpeg,image/webp"></label><label>Mode <select id="mode"><option value="inpaint">Inpaint</option><option value="outpaint">Outpaint</option><option value="restyle">Restyle</option></select></label></div>
+  <div class="row"><label>Prompt <textarea id="prompt" maxlength="1000" placeholder="Replace the selected background with a warm studio setting"></textarea></label><label>Brand palette <input id="palette" placeholder="#6C5CE7, #FDCB6E"></label></div>
+  <canvas id="canvas" width="800" height="500" aria-label="Paint an editable region on the uploaded image"></canvas>
+  <div class="row"><button id="clear" type="button">Clear mask</button><button id="preview" type="button">Render flash preview</button><button id="final" type="button">Approve and render final</button></div>
+  <output id="status" aria-live="polite"></output><div id="result"></div>
+</main>
+<script>
+const canvas=document.querySelector('#canvas'),ctx=canvas.getContext('2d'),source=document.querySelector('#source');let image=null,drawing=false,dirty=false;
+source.onchange=()=>{const f=source.files[0];if(!f)return;const u=URL.createObjectURL(f);image=new Image();image.onload=()=>{canvas.width=image.width;canvas.height=image.height;ctx.drawImage(image,0,0);URL.revokeObjectURL(u)};image.src=u};
+function paint(e){if(!drawing)return;const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*canvas.width/r.width,y=(e.clientY-r.top)*canvas.height/r.height;ctx.save();ctx.globalCompositeOperation='source-over';ctx.fillStyle='rgba(255,0,0,.65)';ctx.beginPath();ctx.arc(x,y,Math.max(12,canvas.width/45),0,Math.PI*2);ctx.fill();ctx.restore();dirty=true}
+canvas.onpointerdown=e=>{drawing=true;paint(e)};canvas.onpointermove=paint;window.onpointerup=()=>drawing=false;document.querySelector('#clear').onclick=()=>{if(image){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(image,0,0);dirty=false}};
+async function render(final){const file=source.files[0],prompt=document.querySelector('#prompt').value.trim();if(!file||!prompt||!dirty){status.textContent='Choose an image, enter a prompt, and paint a mask first.';return}const mask=document.createElement('canvas');mask.width=canvas.width;mask.height=canvas.height;const m=mask.getContext('2d');m.drawImage(canvas,0,0);const original=document.createElement('canvas');original.width=canvas.width;original.height=canvas.height;original.getContext('2d').drawImage(image,0,0);const pixels=m.getImageData(0,0,mask.width,mask.height),base=original.getContext('2d').getImageData(0,0,mask.width,mask.height);for(let i=0;i<pixels.data.length;i+=4){const changed=pixels.data[i]!==base.data[i]||pixels.data[i+1]!==base.data[i+1]||pixels.data[i+2]!==base.data[i+2];pixels.data[i]=pixels.data[i+1]=pixels.data[i+2]=changed?255:0;pixels.data[i+3]=changed?255:0}m.putImageData(pixels,0,0);const fd=new FormData();fd.append('source_image',file);fd.append('mask',await new Promise(r=>mask.toBlob(r,'image/png')),'mask.png');fd.append('prompt',prompt);fd.append('brand_palette',document.querySelector('#palette').value.trim());fd.append('mode',document.querySelector('#mode').value);fd.append('tier',final?'final':'flash');fd.append('approved',final);status.textContent='Rendering…';const res=await fetch('/api/v1/studio/inpaint',{method:'POST',body:fd}),job=await res.json();if(!res.ok){status.textContent=job.error;return}status.textContent=`${job.status}; SHA-256 ${job.checksum}`;result.innerHTML=`<img src="${job.image_url}" alt="Generated studio asset">`}
+preview.onclick=()=>render(false);final.onclick=()=>render(true);
+</script></body></html>

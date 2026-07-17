@@ -1,6 +1,7 @@
 """Functional contracts for the Phase 1 Core AI Engine."""
 
 import base64
+import io
 import json
 import subprocess
 import sys
@@ -18,6 +19,7 @@ from core_ai import (  # noqa: E402
     assemble_mp4,
     build_storyboard,
     check_brand_consistency,
+    checksum_asset,
     extract_brand,
     generate_audio,
     generate_script,
@@ -53,7 +55,10 @@ class FakeSTT:
 
 class FakeImage:
     def generate(self, **kwargs):
-        return {"images": ["edited.png"]}
+        image = Image.new("RGB", (8, 8), "#224466")
+        encoded = io.BytesIO()
+        image.save(encoded, format="PNG")
+        return {"images_base64": [base64.b64encode(encoded.getvalue()).decode()]}
 
 
 class FakeRegistry:
@@ -62,6 +67,9 @@ class FakeRegistry:
     music = FakeMusic()
     stt = FakeSTT()
     image = FakeImage()
+
+    def catalog(self):
+        return {"modalities": [{"modality": "image", "effective": "local"}]}
 
 
 class PipelineVideo:
@@ -148,7 +156,7 @@ class CoreAIEngineTest(unittest.TestCase):
             audio_file.write(b"audio")
             audio_file.flush()
             self.assertEqual(transcribe_audio(audio_file.name, registry)["text"], "Canonical transcript")
-        self.assertEqual(inpaint("brand.png", "remove reflection", registry)["images"], ["edited.png"])
+        self.assertIn("images_base64", inpaint("brand.png", "remove reflection", registry))
 
     def test_backend_registry_supports_local_and_api_provider_selection(self):
         local = BackendRegistry(config={
@@ -255,6 +263,71 @@ class CoreAIEngineTest(unittest.TestCase):
         text = next(item for item in catalog["modalities"] if item["modality"] == "text")
         self.assertEqual(text["effective"], "api")
         self.assertNotIn("vault://text-key", str(catalog))
+
+    def test_studio_generate_and_masked_inpaint_roundtrip_are_checksum_verified(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = self.create_image(root)
+            mask = root / "mask.png"
+            Image.new("L", (100, 100), 0).save(mask)
+            with Image.open(mask) as image:
+                image.paste(255, (20, 20, 80, 80))
+                image.save(mask)
+            originals = (dashboard_app.UPLOADS_DIR, dashboard_app.OUTPUT_DIR, dashboard_app.STUDIO_MOUNT,
+                         dashboard_app.registry, dict(dashboard_app.STUDIO_JOBS))
+            dashboard_app.UPLOADS_DIR = root / "uploads"
+            dashboard_app.OUTPUT_DIR = root / "output"
+            dashboard_app.STUDIO_MOUNT = root / "mount"
+            dashboard_app.registry = FakeRegistry()
+            dashboard_app.STUDIO_JOBS.clear()
+            self.addCleanup(setattr, dashboard_app, "UPLOADS_DIR", originals[0])
+            self.addCleanup(setattr, dashboard_app, "OUTPUT_DIR", originals[1])
+            self.addCleanup(setattr, dashboard_app, "STUDIO_MOUNT", originals[2])
+            self.addCleanup(setattr, dashboard_app, "registry", originals[3])
+            self.addCleanup(dashboard_app.STUDIO_JOBS.update, originals[4])
+            client = app.test_client()
+            generated = client.post("/api/v1/studio/generate", data={"prompt": "a brand hero image"})
+            self.assertEqual(generated.status_code, 200, generated.get_json())
+            self.assertEqual(generated.get_json()["tier"], "flash")
+            with source.open("rb") as source_file, mask.open("rb") as mask_file:
+                edited = client.post("/api/v1/studio/inpaint", data={
+                    "source_image": (source_file, "source.png"), "mask": (mask_file, "mask.png"),
+                    "prompt": "replace the selected background", "mode": "restyle",
+                    "brand_palette": "#112233, #F5BE28", "tier": "final", "approved": "true",
+                }, content_type="multipart/form-data")
+            self.assertEqual(edited.status_code, 200, edited.get_json())
+            job = edited.get_json()
+            self.assertEqual(job["status"], "completed")
+            self.assertEqual(job["mode"], "restyle")
+            self.assertEqual(job["tier"], "final")
+            self.assertEqual(job["brand_palette"], "#112233, #F5BE28")
+            saved = root / "output" / Path(job["image_url"]).name
+            self.assertTrue(saved.is_file())
+            self.assertEqual(job["checksum"], checksum_asset(saved))
+            self.assertEqual(client.get(f"/api/v1/studio/{job['job_id']}").get_json(), job)
+
+    def test_studio_rejects_empty_mask_and_unapproved_final(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = self.create_image(root)
+            mask = root / "empty-mask.png"
+            Image.new("L", (100, 100), 0).save(mask)
+            original_uploads = dashboard_app.UPLOADS_DIR
+            dashboard_app.UPLOADS_DIR = root / "uploads"
+            self.addCleanup(setattr, dashboard_app, "UPLOADS_DIR", original_uploads)
+            client = app.test_client()
+            with source.open("rb") as source_file, mask.open("rb") as mask_file:
+                response = client.post("/api/v1/studio/inpaint", data={
+                    "source_image": (source_file, "source.png"), "mask": (mask_file, "mask.png"),
+                    "prompt": "remove reflection", "tier": "final", "approved": "true",
+                }, content_type="multipart/form-data")
+            self.assertEqual(response.status_code, 400)
+            self.assertIn("INVALID_MASK", response.get_json()["error"])
+        rejected = app.test_client().post("/api/v1/studio/generate", data={
+            "prompt": "brand hero", "tier": "final",
+        })
+        self.assertEqual(rejected.status_code, 400)
+        self.assertIn("APPROVAL_REQUIRED", rejected.get_json()["error"])
 
     def test_rejects_taglines_over_two_hundred_characters(self):
         brand = extract_brand(self._temporary_image())
