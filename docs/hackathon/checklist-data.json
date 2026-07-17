@@ -1,0 +1,649 @@
+{
+  "blueprint": "docs/hackathon/CANON_OS_HACKATHON_BLUEPRINT.md",
+  "generated": "2026-07-17T07:16:56.342228Z",
+  "project_name": "Canon OS Hackathon",
+  "phases": [
+    {
+      "number": 0,
+      "title": "Submission Foundation",
+      "tag": "",
+      "flag": "",
+      "tasks": [
+        {
+          "id": "PHASE-0.1",
+          "description": "documented local launch and sample input",
+          "deliverable": "documented local launch and sample input",
+          "validation": "clean-start happy path",
+          "rollback": "RB-H0",
+          "prerequisite": "Repository access",
+          "feature_flag": "FEAT_DASHBOARD"
+        },
+        {
+          "id": "PHASE-0.2",
+          "description": "hackathon standards and Codex build log",
+          "deliverable": "hackathon standards and Codex build log",
+          "validation": "docs present and internally consistent",
+          "rollback": "RB-H0",
+          "prerequisite": "Repository access",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        },
+        {
+          "id": "PHASE-0.3",
+          "description": "provider-free demo configuration",
+          "deliverable": "provider-free demo configuration",
+          "validation": "no secret or model download required",
+          "rollback": "RB-H0",
+          "prerequisite": "Repository access",
+          "feature_flag": "FEAT_BACKEND_REGISTRY"
+        },
+        {
+          "id": "PHASE-0.4",
+          "description": "phase-0 review record",
+          "deliverable": "phase-0 review record",
+          "validation": "independent reviewer confirms runnable foundation",
+          "rollback": "RB-H0",
+          "prerequisite": "Peer verify",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        }
+      ]
+    },
+    {
+      "number": 1,
+      "title": "Campaign Core",
+      "tag": "",
+      "flag": "",
+      "tasks": [
+        {
+          "id": "PHASE-1.1",
+          "description": "immutable brand profile from image and brief",
+          "deliverable": "immutable brand profile from image and brief",
+          "validation": "identity displayed and carried forward",
+          "rollback": "RB-H1",
+          "prerequisite": "PHASE-0 complete",
+          "feature_flag": "FEAT_BRAND_IDENTITY"
+        },
+        {
+          "id": "PHASE-1.2",
+          "description": "commercial script",
+          "deliverable": "commercial script",
+          "validation": "script reflects brief and profile",
+          "rollback": "RB-H1",
+          "prerequisite": "PHASE-1.1",
+          "feature_flag": "FEAT_SCRIPT_GEN"
+        },
+        {
+          "id": "PHASE-1.3",
+          "description": "storyboard preview",
+          "deliverable": "storyboard preview",
+          "validation": "scenes map to the script",
+          "rollback": "RB-H1",
+          "prerequisite": "PHASE-1.2",
+          "feature_flag": "FEAT_STORYBOARD"
+        },
+        {
+          "id": "PHASE-1.4",
+          "description": "phase-1 review record",
+          "deliverable": "phase-1 review record",
+          "validation": "reviewer tests image-to-storyboard flow",
+          "rollback": "RB-H1",
+          "prerequisite": "Peer verify",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Creative and Platform Outputs",
+      "tag": "",
+      "flag": "",
+      "tasks": [
+        {
+          "id": "PHASE-2.1",
+          "description": "draft creative asset",
+          "deliverable": "draft creative asset",
+          "validation": "output/provenance is visible",
+          "rollback": "RB-H2",
+          "prerequisite": "PHASE-1 complete",
+          "feature_flag": "FEAT_IMAGE_STUDIO"
+        },
+        {
+          "id": "PHASE-2.2",
+          "description": "short commercial draft or labeled fixture",
+          "deliverable": "short commercial draft or labeled fixture",
+          "validation": "output loads and label is truthful",
+          "rollback": "RB-H2",
+          "prerequisite": "PHASE-2.1",
+          "feature_flag": "FEAT_VIDEO_RENDER"
+        },
+        {
+          "id": "PHASE-2.3",
+          "description": "platform variants and captions",
+          "deliverable": "platform variants and captions",
+          "validation": "formats are labeled and derived from campaign",
+          "rollback": "RB-H2",
+          "prerequisite": "PHASE-2.2",
+          "feature_flag": "FEAT_PLATFORM_ADAPT"
+        },
+        {
+          "id": "PHASE-2.4",
+          "description": "phase-2 review record",
+          "deliverable": "phase-2 review record",
+          "validation": "reviewer checks assets and failure path",
+          "rollback": "RB-H2",
+          "prerequisite": "Peer verify",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Campaign Results and Provenance",
+      "tag": "",
+      "flag": "",
+      "tasks": [
+        {
+          "id": "PHASE-3.1",
+          "description": "campaign calendar",
+          "deliverable": "campaign calendar",
+          "validation": "items show platform and schedule",
+          "rollback": "RB-H3",
+          "prerequisite": "PHASE-2 complete",
+          "feature_flag": "FEAT_CONTENT_CALENDAR"
+        },
+        {
+          "id": "PHASE-3.2",
+          "description": "metrics and recommendation",
+          "deliverable": "metrics and recommendation",
+          "validation": "imported/sample provenance is explicit",
+          "rollback": "RB-H3",
+          "prerequisite": "PHASE-3.1",
+          "feature_flag": "FEAT_ANALYTICS"
+        },
+        {
+          "id": "PHASE-3.3",
+          "description": "backend selection/status",
+          "deliverable": "backend selection/status",
+          "validation": "selected backend is shown per modality",
+          "rollback": "RB-H3",
+          "prerequisite": "PHASE-3.2",
+          "feature_flag": "FEAT_BACKEND_REGISTRY"
+        },
+        {
+          "id": "PHASE-3.4",
+          "description": "phase-3 review record",
+          "deliverable": "phase-3 review record",
+          "validation": "reviewer confirms no overclaiming",
+          "rollback": "RB-H3",
+          "prerequisite": "Peer verify",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Product Quality and Evidence",
+      "tag": "",
+      "flag": "",
+      "tasks": [
+        {
+          "id": "PHASE-4.1",
+          "description": "responsive accessible three-screen flow",
+          "deliverable": "responsive accessible three-screen flow",
+          "validation": "keyboard and narrow viewport smoke test",
+          "rollback": "RB-H4",
+          "prerequisite": "PHASE-3 complete",
+          "feature_flag": "FEAT_DASHBOARD"
+        },
+        {
+          "id": "PHASE-4.2",
+          "description": "automated and manual test evidence",
+          "deliverable": "automated and manual test evidence",
+          "validation": "happy path and failure path pass",
+          "rollback": "RB-H4",
+          "prerequisite": "PHASE-4.1",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        },
+        {
+          "id": "PHASE-4.3",
+          "description": "Codex/GPT-5.6 evidence log",
+          "deliverable": "Codex/GPT-5.6 evidence log",
+          "validation": "README and log agree",
+          "rollback": "RB-H4",
+          "prerequisite": "PHASE-4.2",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        },
+        {
+          "id": "PHASE-4.4",
+          "description": "phase-4 review record",
+          "deliverable": "phase-4 review record",
+          "validation": "independent reviewer signs off",
+          "rollback": "RB-H4",
+          "prerequisite": "Peer verify",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Submission and Director Review",
+      "tag": "",
+      "flag": "",
+      "tasks": [
+        {
+          "id": "PHASE-5.1",
+          "description": "public three-minute demo video",
+          "deliverable": "public three-minute demo video",
+          "validation": "shows working flow and required narration",
+          "rollback": "RB-H5",
+          "prerequisite": "PHASE-4 complete",
+          "feature_flag": "FEAT_DASHBOARD"
+        },
+        {
+          "id": "PHASE-5.2",
+          "description": "complete Devpost draft",
+          "deliverable": "complete Devpost draft",
+          "validation": "all required fields and links present",
+          "rollback": "RB-H5",
+          "prerequisite": "PHASE-5.1",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        },
+        {
+          "id": "PHASE-5.3",
+          "description": "release README and runbook",
+          "deliverable": "release README and runbook",
+          "validation": "judge can run/test without guessing",
+          "rollback": "RB-H5",
+          "prerequisite": "PHASE-5.2",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        },
+        {
+          "id": "PHASE-5.4",
+          "description": "director review record",
+          "deliverable": "director review record",
+          "validation": "release answer is yes",
+          "rollback": "RB-H5",
+          "prerequisite": "Final holistic review",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        }
+      ]
+    }
+  ],
+  "modules": [
+    {
+      "id": "MOD-001",
+      "name": "Brand Identity Manager",
+      "purpose": "Create and show immutable brand DNA from upload",
+      "feature_flag": "FEAT_BRAND_IDENTITY"
+    },
+    {
+      "id": "MOD-002",
+      "name": "Script Generator",
+      "purpose": "Produce campaign script from brand and brief",
+      "feature_flag": "FEAT_SCRIPT_GEN"
+    },
+    {
+      "id": "MOD-003",
+      "name": "Storyboard Engine",
+      "purpose": "Render a scene-by-scene preview",
+      "feature_flag": "FEAT_STORYBOARD"
+    },
+    {
+      "id": "MOD-004",
+      "name": "Video Renderer",
+      "purpose": "Produce one short creative draft or fixture-backed draft",
+      "feature_flag": "FEAT_VIDEO_RENDER"
+    },
+    {
+      "id": "MOD-008",
+      "name": "Content Calendar",
+      "purpose": "Display scheduled platform-ready campaign items",
+      "feature_flag": "FEAT_CONTENT_CALENDAR"
+    },
+    {
+      "id": "MOD-009",
+      "name": "Platform Adapter",
+      "purpose": "Produce labeled platform formats and captions",
+      "feature_flag": "FEAT_PLATFORM_ADAPT"
+    },
+    {
+      "id": "MOD-011",
+      "name": "Analytics Tracker",
+      "purpose": "Display imported/sample metrics with provenance",
+      "feature_flag": "FEAT_ANALYTICS"
+    },
+    {
+      "id": "MOD-013",
+      "name": "Dashboard UI",
+      "purpose": "Deliver the three-screen judge flow",
+      "feature_flag": "FEAT_DASHBOARD"
+    },
+    {
+      "id": "MOD-018",
+      "name": "Quality Checker",
+      "purpose": "Confirm brand identity fields travel through the flow",
+      "feature_flag": "FEAT_QUALITY_CHECK"
+    },
+    {
+      "id": "MOD-021",
+      "name": "Image & Photo Studio",
+      "purpose": "Support image upload and draft image generation/editing",
+      "feature_flag": "FEAT_IMAGE_STUDIO"
+    },
+    {
+      "id": "MOD-022",
+      "name": "Backend Registry",
+      "purpose": "Show per-modality local/API backend selection",
+      "feature_flag": "FEAT_BACKEND_REGISTRY"
+    }
+  ],
+  "screens": [],
+  "feature_flags": {
+    "FEAT_BRAND_IDENTITY": {
+      "phases": [],
+      "modules": [
+        "Brand Identity Manager"
+      ],
+      "screens": []
+    },
+    "FEAT_SCRIPT_GEN": {
+      "phases": [],
+      "modules": [
+        "Script Generator"
+      ],
+      "screens": []
+    },
+    "FEAT_STORYBOARD": {
+      "phases": [],
+      "modules": [
+        "Storyboard Engine"
+      ],
+      "screens": []
+    },
+    "FEAT_VIDEO_RENDER": {
+      "phases": [],
+      "modules": [
+        "Video Renderer"
+      ],
+      "screens": []
+    },
+    "FEAT_CONTENT_CALENDAR": {
+      "phases": [],
+      "modules": [
+        "Content Calendar"
+      ],
+      "screens": []
+    },
+    "FEAT_PLATFORM_ADAPT": {
+      "phases": [],
+      "modules": [
+        "Platform Adapter"
+      ],
+      "screens": []
+    },
+    "FEAT_ANALYTICS": {
+      "phases": [],
+      "modules": [
+        "Analytics Tracker"
+      ],
+      "screens": []
+    },
+    "FEAT_DASHBOARD": {
+      "phases": [],
+      "modules": [
+        "Dashboard UI"
+      ],
+      "screens": []
+    },
+    "FEAT_QUALITY_CHECK": {
+      "phases": [],
+      "modules": [
+        "Quality Checker"
+      ],
+      "screens": []
+    },
+    "FEAT_IMAGE_STUDIO": {
+      "phases": [],
+      "modules": [
+        "Image & Photo Studio"
+      ],
+      "screens": []
+    },
+    "FEAT_BACKEND_REGISTRY": {
+      "phases": [],
+      "modules": [
+        "Backend Registry"
+      ],
+      "screens": []
+    }
+  },
+  "phases_data": [
+    {
+      "deliverables": [
+        {
+          "id": "PHASE-0.1",
+          "deliverable": "documented local launch and sample input",
+          "validation": "clean-start happy path",
+          "rollback": "RB-H0",
+          "prerequisite": "Repository access",
+          "feature_flag": "FEAT_DASHBOARD"
+        },
+        {
+          "id": "PHASE-0.2",
+          "deliverable": "hackathon standards and Codex build log",
+          "validation": "docs present and internally consistent",
+          "rollback": "RB-H0",
+          "prerequisite": "Repository access",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        },
+        {
+          "id": "PHASE-0.3",
+          "deliverable": "provider-free demo configuration",
+          "validation": "no secret or model download required",
+          "rollback": "RB-H0",
+          "prerequisite": "Repository access",
+          "feature_flag": "FEAT_BACKEND_REGISTRY"
+        },
+        {
+          "id": "PHASE-0.4",
+          "deliverable": "phase-0 review record",
+          "validation": "independent reviewer confirms runnable foundation",
+          "rollback": "RB-H0",
+          "prerequisite": "Peer verify",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        }
+      ],
+      "flag": ""
+    },
+    {
+      "deliverables": [
+        {
+          "id": "PHASE-1.1",
+          "deliverable": "immutable brand profile from image and brief",
+          "validation": "identity displayed and carried forward",
+          "rollback": "RB-H1",
+          "prerequisite": "PHASE-0 complete",
+          "feature_flag": "FEAT_BRAND_IDENTITY"
+        },
+        {
+          "id": "PHASE-1.2",
+          "deliverable": "commercial script",
+          "validation": "script reflects brief and profile",
+          "rollback": "RB-H1",
+          "prerequisite": "PHASE-1.1",
+          "feature_flag": "FEAT_SCRIPT_GEN"
+        },
+        {
+          "id": "PHASE-1.3",
+          "deliverable": "storyboard preview",
+          "validation": "scenes map to the script",
+          "rollback": "RB-H1",
+          "prerequisite": "PHASE-1.2",
+          "feature_flag": "FEAT_STORYBOARD"
+        },
+        {
+          "id": "PHASE-1.4",
+          "deliverable": "phase-1 review record",
+          "validation": "reviewer tests image-to-storyboard flow",
+          "rollback": "RB-H1",
+          "prerequisite": "Peer verify",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        }
+      ],
+      "flag": ""
+    },
+    {
+      "deliverables": [
+        {
+          "id": "PHASE-2.1",
+          "deliverable": "draft creative asset",
+          "validation": "output/provenance is visible",
+          "rollback": "RB-H2",
+          "prerequisite": "PHASE-1 complete",
+          "feature_flag": "FEAT_IMAGE_STUDIO"
+        },
+        {
+          "id": "PHASE-2.2",
+          "deliverable": "short commercial draft or labeled fixture",
+          "validation": "output loads and label is truthful",
+          "rollback": "RB-H2",
+          "prerequisite": "PHASE-2.1",
+          "feature_flag": "FEAT_VIDEO_RENDER"
+        },
+        {
+          "id": "PHASE-2.3",
+          "deliverable": "platform variants and captions",
+          "validation": "formats are labeled and derived from campaign",
+          "rollback": "RB-H2",
+          "prerequisite": "PHASE-2.2",
+          "feature_flag": "FEAT_PLATFORM_ADAPT"
+        },
+        {
+          "id": "PHASE-2.4",
+          "deliverable": "phase-2 review record",
+          "validation": "reviewer checks assets and failure path",
+          "rollback": "RB-H2",
+          "prerequisite": "Peer verify",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        }
+      ],
+      "flag": ""
+    },
+    {
+      "deliverables": [
+        {
+          "id": "PHASE-3.1",
+          "deliverable": "campaign calendar",
+          "validation": "items show platform and schedule",
+          "rollback": "RB-H3",
+          "prerequisite": "PHASE-2 complete",
+          "feature_flag": "FEAT_CONTENT_CALENDAR"
+        },
+        {
+          "id": "PHASE-3.2",
+          "deliverable": "metrics and recommendation",
+          "validation": "imported/sample provenance is explicit",
+          "rollback": "RB-H3",
+          "prerequisite": "PHASE-3.1",
+          "feature_flag": "FEAT_ANALYTICS"
+        },
+        {
+          "id": "PHASE-3.3",
+          "deliverable": "backend selection/status",
+          "validation": "selected backend is shown per modality",
+          "rollback": "RB-H3",
+          "prerequisite": "PHASE-3.2",
+          "feature_flag": "FEAT_BACKEND_REGISTRY"
+        },
+        {
+          "id": "PHASE-3.4",
+          "deliverable": "phase-3 review record",
+          "validation": "reviewer confirms no overclaiming",
+          "rollback": "RB-H3",
+          "prerequisite": "Peer verify",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        }
+      ],
+      "flag": ""
+    },
+    {
+      "deliverables": [
+        {
+          "id": "PHASE-4.1",
+          "deliverable": "responsive accessible three-screen flow",
+          "validation": "keyboard and narrow viewport smoke test",
+          "rollback": "RB-H4",
+          "prerequisite": "PHASE-3 complete",
+          "feature_flag": "FEAT_DASHBOARD"
+        },
+        {
+          "id": "PHASE-4.2",
+          "deliverable": "automated and manual test evidence",
+          "validation": "happy path and failure path pass",
+          "rollback": "RB-H4",
+          "prerequisite": "PHASE-4.1",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        },
+        {
+          "id": "PHASE-4.3",
+          "deliverable": "Codex/GPT-5.6 evidence log",
+          "validation": "README and log agree",
+          "rollback": "RB-H4",
+          "prerequisite": "PHASE-4.2",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        },
+        {
+          "id": "PHASE-4.4",
+          "deliverable": "phase-4 review record",
+          "validation": "independent reviewer signs off",
+          "rollback": "RB-H4",
+          "prerequisite": "Peer verify",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        }
+      ],
+      "flag": ""
+    },
+    {
+      "deliverables": [
+        {
+          "id": "PHASE-5.1",
+          "deliverable": "public three-minute demo video",
+          "validation": "shows working flow and required narration",
+          "rollback": "RB-H5",
+          "prerequisite": "PHASE-4 complete",
+          "feature_flag": "FEAT_DASHBOARD"
+        },
+        {
+          "id": "PHASE-5.2",
+          "deliverable": "complete Devpost draft",
+          "validation": "all required fields and links present",
+          "rollback": "RB-H5",
+          "prerequisite": "PHASE-5.1",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        },
+        {
+          "id": "PHASE-5.3",
+          "deliverable": "release README and runbook",
+          "validation": "judge can run/test without guessing",
+          "rollback": "RB-H5",
+          "prerequisite": "PHASE-5.2",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        },
+        {
+          "id": "PHASE-5.4",
+          "deliverable": "director review record",
+          "validation": "release answer is yes",
+          "rollback": "RB-H5",
+          "prerequisite": "Final holistic review",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        }
+      ],
+      "flag": ""
+    }
+  ],
+  "enforcement": {
+    "mode": "loop",
+    "validators": true,
+    "auto_verify": false,
+    "phase_gates": true
+  }
+}
