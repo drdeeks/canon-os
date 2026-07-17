@@ -152,7 +152,7 @@ class ChecklistGenerator:
 
         # Extract Part VI tables (authoritative deliverable source)
         part_vi = ""
-        pvi = re.search(r"## PART VI.*?(?=\n## [A-Z]|$)", self.content, re.DOTALL | re.IGNORECASE)
+        pvi = re.search(r"^#{1,6}\s+PART VI.*?(?=\n#{1,6}\s+PART VII|\Z)", self.content, re.DOTALL | re.IGNORECASE | re.MULTILINE)
         if pvi:
             part_vi = pvi.group(0)
 
@@ -171,7 +171,7 @@ class ChecklistGenerator:
             # Parse metadata
             tag = ""
             flag = ""
-            tg = re.search(r"\*\*(?:Section )?Tag:\*\*\s*`?([^`\n]+)`?", section)
+            tg = re.search(r"\*\*(?:Section )?(?:Tag|Rollback Tag):\*\*\s*`?([^`\n]+)`?", section)
             if tg:
                 tag = tg.group(1).strip()
             fl = re.search(r"\*\*(?:Feature )?Flag:\*\*\s*`?([^`\n]+)`?", section)
@@ -181,25 +181,27 @@ class ChecklistGenerator:
             # Tasks from Part VI table
             tasks = []
             if part_vi:
+                phase_tbl_section = re.search(
+                    rf"### PHASE-{phase_num}: [^\n]*.*?(?=\n### PHASE-\d+:|\Z)",
+                    part_vi,
+                    re.DOTALL,
+                )
                 tbl = re.search(
-                    rf"### PHASE-{phase_num}: [^\n]*\n\| Prerequisite \| Feature Flag \| Deliverables \| Validation Gate \| Rollback \|\n\|[-:]+\|[-:]+\|[-:]+\|[-:]+\|[-:]+\|\n((?:\|.*\|\n)+)",
-                    part_vi
+                    r"\|\s*Prerequisite\s*\|\s*Feature Flag\s*\|\s*Deliverables\s*\|\s*Validation Gate\s*\|\s*Rollback\s*\|\n\|\s*[-:]+\s*\|\s*[-:]+\s*\|\s*[-:]+\s*\|\s*[-:]+\s*\|\s*[-:]+\s*\|\n((?:\|.*\|\n)+)",
+                    phase_tbl_section.group(0) if phase_tbl_section else "",
                 )
                 if tbl:
                     for row in tbl.group(1).strip().split("\n"):
                         parts = [p.strip() for p in row.split("|") if p.strip()]
                         if len(parts) >= 5:
                             prereq, fflag, deliverable, val, rb = parts[:5]
-                            # Each deliverable gets its own task
-                            for d in re.split(r"[,;]", deliverable):
-                                d = d.strip()
-                                if d and not d.startswith("```") and d != "N/A":
-                                    tid = f"PHASE-{phase_num}.{len(tasks)+1}"
-                                    tasks.append(Task(
-                                        id=tid, description=d, deliverable=d,
-                                        validation=val, rollback=rb,
-                                        prerequisite=prereq, feature_flag=fflag
-                                    ))
+                            if deliverable and deliverable != "N/A":
+                                tid = f"PHASE-{phase_num}.{len(tasks)+1}"
+                                tasks.append(Task(
+                                    id=tid, description=deliverable, deliverable=deliverable,
+                                    validation=val, rollback=rb,
+                                    prerequisite=prereq, feature_flag=fflag
+                                ))
 
             # Fallback: checkbox tasks
             if not tasks:
@@ -222,7 +224,10 @@ class ChecklistGenerator:
             for line in mt.group(1).split("\n"):
                 parts = [p.strip() for p in line.split("|") if p.strip()]
                 if len(parts) >= 4 and parts[0].startswith("MOD-"):
-                    modules.append(Module(id=parts[0], name=parts[1], purpose=parts[2], feature_flag=parts[3]))
+                    if parts[2].startswith("FEAT_"):
+                        modules.append(Module(id=parts[0], name=parts[1], purpose=parts[3], feature_flag=parts[2]))
+                    else:
+                        modules.append(Module(id=parts[0], name=parts[1], purpose=parts[2], feature_flag=parts[3]))
         return modules
 
     def extract_screens(self) -> List[Screen]:

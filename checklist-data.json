@@ -1,202 +1,749 @@
 {
   "blueprint": "blueprint.md",
-  "generated": "2026-07-16T22:03:21.091674Z",
+  "generated": "2026-07-17T09:57:27.431463Z",
   "project_name": "Canon OS",
   "phases": [
     {
       "number": 0,
       "title": "Foundation",
-      "tag": "",
+      "tag": "[PHASE-0-v1]",
       "flag": "",
-      "tasks": []
+      "tasks": [
+        {
+          "id": "PHASE-0.1",
+          "description": "repo init, Dockerfile, CI",
+          "deliverable": "repo init, Dockerfile, CI",
+          "validation": "health 200",
+          "rollback": "RB-000",
+          "prerequisite": "Repo access",
+          "feature_flag": "FEAT_USER_MGMT"
+        },
+        {
+          "id": "PHASE-0.2",
+          "description": "project structure (src/, tests/, docs/)",
+          "deliverable": "project structure (src/, tests/, docs/)",
+          "validation": "tree exists",
+          "rollback": "RB-000",
+          "prerequisite": "PHASE-0.1",
+          "feature_flag": "FEAT_USER_MGMT"
+        },
+        {
+          "id": "PHASE-0.3",
+          "description": "DB schema init (V001__init_schema.sql)",
+          "deliverable": "DB schema init (V001__init_schema.sql)",
+          "validation": "psql applies",
+          "rollback": "RB-000",
+          "prerequisite": "PHASE-0.2",
+          "feature_flag": "FEAT_ASSET_STORAGE"
+        },
+        {
+          "id": "PHASE-0.4",
+          "description": "API skeleton (Express+GraphQL, /health)",
+          "deliverable": "API skeleton (Express+GraphQL, /health)",
+          "validation": "health 200",
+          "rollback": "RB-000",
+          "prerequisite": "PHASE-0.3",
+          "feature_flag": "FEAT_API_GATEWAY"
+        },
+        {
+          "id": "PHASE-0.5",
+          "description": "auth (JWT register/login)",
+          "deliverable": "auth (JWT register/login)",
+          "validation": "token issued",
+          "rollback": "RB-000",
+          "prerequisite": "PHASE-0.4",
+          "feature_flag": "FEAT_USER_MGMT"
+        },
+        {
+          "id": "PHASE-0.6",
+          "description": "user mgmt (RBAC)",
+          "deliverable": "user mgmt (RBAC)",
+          "validation": "role enforced",
+          "rollback": "RB-000",
+          "prerequisite": "PHASE-0.5",
+          "feature_flag": "FEAT_USER_MGMT"
+        },
+        {
+          "id": "PHASE-0.7",
+          "description": "object storage (MinIO/S3)",
+          "deliverable": "object storage (MinIO/S3)",
+          "validation": "upload/download",
+          "rollback": "RB-000",
+          "prerequisite": "PHASE-0.6",
+          "feature_flag": "FEAT_ASSET_STORAGE"
+        },
+        {
+          "id": "PHASE-0.8",
+          "description": "job queue (RabbitMQ)",
+          "deliverable": "job queue (RabbitMQ)",
+          "validation": "job enqueues",
+          "rollback": "RB-000",
+          "prerequisite": "PHASE-0.7",
+          "feature_flag": "FEAT_JOB_QUEUE"
+        },
+        {
+          "id": "PHASE-0.9",
+          "description": "logging framework",
+          "deliverable": "logging framework",
+          "validation": "structured logs",
+          "rollback": "RB-000",
+          "prerequisite": "PHASE-0.8",
+          "feature_flag": "FEAT_OBSERVABILITY"
+        },
+        {
+          "id": "PHASE-0.10",
+          "description": "error middleware",
+          "deliverable": "error middleware",
+          "validation": "centralized errors",
+          "rollback": "RB-000",
+          "prerequisite": "PHASE-0.9",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        },
+        {
+          "id": "PHASE-0.11",
+          "description": "reviews/phase-0-verify.md",
+          "deliverable": "reviews/phase-0-verify.md",
+          "validation": "reviewer confirms runnable",
+          "rollback": "RB-000",
+          "prerequisite": "Peer verify",
+          "feature_flag": "FEAT_USER_MGMT"
+        }
+      ]
     },
     {
       "number": 1,
       "title": "Core AI Engine",
-      "tag": "",
+      "tag": "[PHASE-1-v1]",
       "flag": "",
-      "tasks": []
+      "tasks": [
+        {
+          "id": "PHASE-1.1",
+          "description": "brand extraction (MOD-001)",
+          "deliverable": "brand extraction (MOD-001)",
+          "validation": "colors extracted",
+          "rollback": "RB-001",
+          "prerequisite": "PHASE-0 complete",
+          "feature_flag": "FEAT_AI_GENERATION"
+        },
+        {
+          "id": "PHASE-1.2",
+          "description": "script gen (MOD-002)",
+          "deliverable": "script gen (MOD-002)",
+          "validation": "30s script",
+          "rollback": "RB-001",
+          "prerequisite": "PHASE-1.2",
+          "feature_flag": "FEAT_SCRIPT_GEN"
+        },
+        {
+          "id": "PHASE-1.3",
+          "description": "storyboard (MOD-003)",
+          "deliverable": "storyboard (MOD-003)",
+          "validation": "8-12 scenes",
+          "rollback": "RB-001",
+          "prerequisite": "PHASE-1.3",
+          "feature_flag": "FEAT_STORYBOARD"
+        },
+        {
+          "id": "PHASE-1.4",
+          "description": "video render (MOD-004, local Wan/API)",
+          "deliverable": "video render (MOD-004, local Wan/API)",
+          "validation": "scene renders",
+          "rollback": "RB-001",
+          "prerequisite": "PHASE-1.4",
+          "feature_flag": "FEAT_VIDEO_RENDER"
+        },
+        {
+          "id": "PHASE-1.5",
+          "description": "audio (MOD-005, TTS/music)",
+          "deliverable": "audio (MOD-005, TTS/music)",
+          "validation": "voiceover+music",
+          "rollback": "RB-001",
+          "prerequisite": "PHASE-1.5",
+          "feature_flag": "FEAT_AUDIO_GEN"
+        },
+        {
+          "id": "PHASE-1.6",
+          "description": "assembly (MOD-006, FFmpeg)",
+          "deliverable": "assembly (MOD-006, FFmpeg)",
+          "validation": "mp4 output",
+          "rollback": "RB-001",
+          "prerequisite": "PHASE-1.6",
+          "feature_flag": "FEAT_ASSEMBLY"
+        },
+        {
+          "id": "PHASE-1.7",
+          "description": "image gen + inpaint (MOD-021)",
+          "deliverable": "image gen + inpaint (MOD-021)",
+          "validation": "canvas renders",
+          "rollback": "RB-001",
+          "prerequisite": "PHASE-1.7",
+          "feature_flag": "FEAT_IMAGE_STUDIO"
+        },
+        {
+          "id": "PHASE-1.8",
+          "description": "backend registry (MOD-022)",
+          "deliverable": "backend registry (MOD-022)",
+          "validation": "local<->api switch",
+          "rollback": "RB-001",
+          "prerequisite": "PHASE-1.8",
+          "feature_flag": "FEAT_BACKEND_REGISTRY"
+        },
+        {
+          "id": "PHASE-1.9",
+          "description": "transcription (MOD-023)",
+          "deliverable": "transcription (MOD-023)",
+          "validation": "transcript",
+          "rollback": "RB-001",
+          "prerequisite": "PHASE-1.9",
+          "feature_flag": "FEAT_STT"
+        },
+        {
+          "id": "PHASE-1.10",
+          "description": "quality checker (MOD-018)",
+          "deliverable": "quality checker (MOD-018)",
+          "validation": "brand-consistency",
+          "rollback": "RB-001",
+          "prerequisite": "PHASE-1.10",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        },
+        {
+          "id": "PHASE-1.11",
+          "description": "reviews/phase-1-verify.md",
+          "deliverable": "reviews/phase-1-verify.md",
+          "validation": "reviewer confirms E2E ad",
+          "rollback": "RB-001",
+          "prerequisite": "Peer verify",
+          "feature_flag": "FEAT_AI_GENERATION"
+        }
+      ]
     },
     {
       "number": 2,
       "title": "Content Generation",
-      "tag": "",
+      "tag": "[PHASE-2-v1]",
       "flag": "",
-      "tasks": []
+      "tasks": [
+        {
+          "id": "PHASE-2.1",
+          "description": "campaign svc (MOD-007)",
+          "deliverable": "campaign svc (MOD-007)",
+          "validation": "campaign created",
+          "rollback": "RB-002",
+          "prerequisite": "PHASE-1 complete",
+          "feature_flag": "FEAT_CAMPAIGN_SCHED"
+        },
+        {
+          "id": "PHASE-2.2",
+          "description": "calendar (MOD-008)",
+          "deliverable": "calendar (MOD-008)",
+          "validation": "30-day plan",
+          "rollback": "RB-002",
+          "prerequisite": "PHASE-2.2",
+          "feature_flag": "FEAT_CONTENT_CALENDAR"
+        },
+        {
+          "id": "PHASE-2.3",
+          "description": "batch gen",
+          "deliverable": "batch gen",
+          "validation": "30 posts",
+          "rollback": "RB-002",
+          "prerequisite": "PHASE-2.3",
+          "feature_flag": "FEAT_CAMPAIGN_SCHED"
+        },
+        {
+          "id": "PHASE-2.4",
+          "description": "platform adapt (MOD-009)",
+          "deliverable": "platform adapt (MOD-009)",
+          "validation": "resized",
+          "rollback": "RB-002",
+          "prerequisite": "PHASE-2.4",
+          "feature_flag": "FEAT_PLATFORM_ADAPT"
+        },
+        {
+          "id": "PHASE-2.5",
+          "description": "caption gen",
+          "deliverable": "caption gen",
+          "validation": "per-platform",
+          "rollback": "RB-002",
+          "prerequisite": "PHASE-2.5",
+          "feature_flag": "FEAT_PLATFORM_ADAPT"
+        },
+        {
+          "id": "PHASE-2.6",
+          "description": "scheduler",
+          "deliverable": "scheduler",
+          "validation": "optimal times",
+          "rollback": "RB-002",
+          "prerequisite": "PHASE-2.6",
+          "feature_flag": "FEAT_CAMPAIGN_SCHED"
+        },
+        {
+          "id": "PHASE-2.7",
+          "description": "campaign API",
+          "deliverable": "campaign API",
+          "validation": "CRUD+pause",
+          "rollback": "RB-002",
+          "prerequisite": "PHASE-2.7",
+          "feature_flag": "FEAT_DASHBOARD"
+        },
+        {
+          "id": "PHASE-2.8",
+          "description": "reviews/phase-2-verify.md",
+          "deliverable": "reviews/phase-2-verify.md",
+          "validation": "reviewer confirms calendar",
+          "rollback": "RB-002",
+          "prerequisite": "Peer verify",
+          "feature_flag": "FEAT_CONTENT_CALENDAR"
+        }
+      ]
     },
     {
       "number": 3,
       "title": "Social Integration",
-      "tag": "",
+      "tag": "[PHASE-3-v1]",
       "flag": "",
-      "tasks": []
+      "tasks": [
+        {
+          "id": "PHASE-3.1",
+          "description": "IG/TikTok/YT/LI/X/FB (MOD-010)",
+          "deliverable": "IG/TikTok/YT/LI/X/FB (MOD-010)",
+          "validation": "sandbox post",
+          "rollback": "RB-003",
+          "prerequisite": "PHASE-2 complete",
+          "feature_flag": "FEAT_SOCIAL_POST"
+        },
+        {
+          "id": "PHASE-3.2",
+          "description": "posting svc (retry/backoff)",
+          "deliverable": "posting svc (retry/backoff)",
+          "validation": "3 attempts",
+          "rollback": "RB-003",
+          "prerequisite": "PHASE-3.6",
+          "feature_flag": "FEAT_SOCIAL_POST"
+        },
+        {
+          "id": "PHASE-3.3",
+          "description": "metrics ingest (MOD-011)",
+          "deliverable": "metrics ingest (MOD-011)",
+          "validation": "engagement",
+          "rollback": "RB-003",
+          "prerequisite": "PHASE-3.7",
+          "feature_flag": "FEAT_ANALYTICS"
+        },
+        {
+          "id": "PHASE-3.4",
+          "description": "account mgmt API",
+          "deliverable": "account mgmt API",
+          "validation": "connect/disconnect",
+          "rollback": "RB-003",
+          "prerequisite": "PHASE-3.8",
+          "feature_flag": "FEAT_SOCIAL_POST"
+        },
+        {
+          "id": "PHASE-3.5",
+          "description": "token refresh",
+          "deliverable": "token refresh",
+          "validation": "auto-renew",
+          "rollback": "RB-003",
+          "prerequisite": "PHASE-3.9",
+          "feature_flag": "FEAT_SOCIAL_POST"
+        },
+        {
+          "id": "PHASE-3.6",
+          "description": "reviews/phase-3-verify.md",
+          "deliverable": "reviews/phase-3-verify.md",
+          "validation": "reviewer confirms multi-post",
+          "rollback": "RB-003",
+          "prerequisite": "Peer verify",
+          "feature_flag": "FEAT_SOCIAL_POST"
+        }
+      ]
     },
     {
       "number": 4,
       "title": "UI Dashboard",
-      "tag": "",
+      "tag": "[PHASE-4-v1]",
       "flag": "",
-      "tasks": []
+      "tasks": [
+        {
+          "id": "PHASE-4.1",
+          "description": "layout, auth UI (MOD-013)",
+          "deliverable": "layout, auth UI (MOD-013)",
+          "validation": "login works",
+          "rollback": "RB-004",
+          "prerequisite": "PHASE-3 complete",
+          "feature_flag": "FEAT_DASHBOARD"
+        },
+        {
+          "id": "PHASE-4.2",
+          "description": "brand mgmt UI",
+          "deliverable": "brand mgmt UI",
+          "validation": "CRUD brand",
+          "rollback": "RB-004",
+          "prerequisite": "PHASE-4.3",
+          "feature_flag": "FEAT_BRAND_IDENTITY"
+        },
+        {
+          "id": "PHASE-4.3",
+          "description": "campaign mgmt UI",
+          "deliverable": "campaign mgmt UI",
+          "validation": "pause/resume",
+          "rollback": "RB-004",
+          "prerequisite": "PHASE-4.4",
+          "feature_flag": "FEAT_DASHBOARD"
+        },
+        {
+          "id": "PHASE-4.4",
+          "description": "calendar UI (drag-drop)",
+          "deliverable": "calendar UI (drag-drop)",
+          "validation": "reschedule",
+          "rollback": "RB-004",
+          "prerequisite": "PHASE-4.5",
+          "feature_flag": "FEAT_CONTENT_CALENDAR"
+        },
+        {
+          "id": "PHASE-4.5",
+          "description": "content library UI",
+          "deliverable": "content library UI",
+          "validation": "grid+download",
+          "rollback": "RB-004",
+          "prerequisite": "PHASE-4.6",
+          "feature_flag": "FEAT_ASSET_STORAGE"
+        },
+        {
+          "id": "PHASE-4.6",
+          "description": "analytics charts",
+          "deliverable": "analytics charts",
+          "validation": "top posts",
+          "rollback": "RB-004",
+          "prerequisite": "PHASE-4.7",
+          "feature_flag": "FEAT_ANALYTICS_ADAPTIVE"
+        },
+        {
+          "id": "PHASE-4.7",
+          "description": "studio canvas UI (MOD-021)",
+          "deliverable": "studio canvas UI (MOD-021)",
+          "validation": "inpaint flow",
+          "rollback": "RB-004",
+          "prerequisite": "PHASE-4.8",
+          "feature_flag": "FEAT_IMAGE_STUDIO"
+        },
+        {
+          "id": "PHASE-4.8",
+          "description": "backend selector UI (MOD-022)",
+          "deliverable": "backend selector UI (MOD-022)",
+          "validation": "switch backend",
+          "rollback": "RB-004",
+          "prerequisite": "PHASE-4.9",
+          "feature_flag": "FEAT_BACKEND_REGISTRY"
+        },
+        {
+          "id": "PHASE-4.9",
+          "description": "reviews/phase-4-verify.md",
+          "deliverable": "reviews/phase-4-verify.md",
+          "validation": "reviewer confirms WCAG AA",
+          "rollback": "RB-004",
+          "prerequisite": "Peer verify",
+          "feature_flag": "FEAT_DASHBOARD"
+        }
+      ]
     },
     {
       "number": 5,
       "title": "Analytics & Optimization",
-      "tag": "",
+      "tag": "[PHASE-5-v1]",
       "flag": "",
-      "tasks": []
+      "tasks": [
+        {
+          "id": "PHASE-5.1",
+          "description": "aggregation (MOD-011)",
+          "deliverable": "aggregation (MOD-011)",
+          "validation": "rollups",
+          "rollback": "RB-005",
+          "prerequisite": "PHASE-4 complete",
+          "feature_flag": "FEAT_ANALYTICS"
+        },
+        {
+          "id": "PHASE-5.2",
+          "description": "engagement rate",
+          "deliverable": "engagement rate",
+          "validation": "computed",
+          "rollback": "RB-005",
+          "prerequisite": "PHASE-5.2",
+          "feature_flag": "FEAT_ANALYTICS"
+        },
+        {
+          "id": "PHASE-5.3",
+          "description": "pattern extraction (MOD-012)",
+          "deliverable": "pattern extraction (MOD-012)",
+          "validation": "patterns",
+          "rollback": "RB-005",
+          "prerequisite": "PHASE-5.4",
+          "feature_flag": "FEAT_ADAPTIVE_LEARN"
+        },
+        {
+          "id": "PHASE-5.4",
+          "description": "adaptive algo",
+          "deliverable": "adaptive algo",
+          "validation": "calendar adj",
+          "rollback": "RB-005",
+          "prerequisite": "PHASE-5.5",
+          "feature_flag": "FEAT_ADAPTIVE_LEARN"
+        },
+        {
+          "id": "PHASE-5.5",
+          "description": "A/B test",
+          "deliverable": "A/B test",
+          "validation": "winner",
+          "rollback": "RB-005",
+          "prerequisite": "PHASE-5.6",
+          "feature_flag": "FEAT_ADAPTIVE_LEARN"
+        },
+        {
+          "id": "PHASE-5.6",
+          "description": "weekly report",
+          "deliverable": "weekly report",
+          "validation": "PDF+email",
+          "rollback": "RB-005",
+          "prerequisite": "PHASE-5.7",
+          "feature_flag": "FEAT_ANALYTICS"
+        },
+        {
+          "id": "PHASE-5.7",
+          "description": "reviews/phase-5-verify.md",
+          "deliverable": "reviews/phase-5-verify.md",
+          "validation": "reviewer confirms learning loop",
+          "rollback": "RB-005",
+          "prerequisite": "Peer verify",
+          "feature_flag": "FEAT_ADAPTIVE_LEARN"
+        }
+      ]
     },
     {
       "number": 6,
       "title": "Deployment + Final Holistic Review",
-      "tag": "",
+      "tag": "[PHASE-6-v1]",
       "flag": "",
-      "tasks": []
+      "tasks": [
+        {
+          "id": "PHASE-6.1",
+          "description": "docker images (MOD-014)",
+          "deliverable": "docker images (MOD-014)",
+          "validation": "build ok",
+          "rollback": "RB-006",
+          "prerequisite": "PHASE-5 complete",
+          "feature_flag": "FEAT_DEPLOYMENT"
+        },
+        {
+          "id": "PHASE-6.2",
+          "description": "k8s manifests",
+          "deliverable": "k8s manifests",
+          "validation": "apply ok",
+          "rollback": "RB-006",
+          "prerequisite": "PHASE-6.2",
+          "feature_flag": "FEAT_DEPLOYMENT"
+        },
+        {
+          "id": "PHASE-6.3",
+          "description": "CI/CD (GitHub Actions)",
+          "deliverable": "CI/CD (GitHub Actions)",
+          "validation": "test+audit",
+          "rollback": "RB-006",
+          "prerequisite": "PHASE-6.4",
+          "feature_flag": "FEAT_DEPLOYMENT"
+        },
+        {
+          "id": "PHASE-6.4",
+          "description": "prod migrations (zero-downtime)",
+          "deliverable": "prod migrations (zero-downtime)",
+          "validation": "applies",
+          "rollback": "RB-006",
+          "prerequisite": "PHASE-6.5",
+          "feature_flag": "FEAT_ASSET_STORAGE"
+        },
+        {
+          "id": "PHASE-6.5",
+          "description": "secrets mgmt",
+          "deliverable": "secrets mgmt",
+          "validation": "vault ok",
+          "rollback": "RB-006",
+          "prerequisite": "PHASE-6.6",
+          "feature_flag": "FEAT_USER_MGMT"
+        },
+        {
+          "id": "PHASE-6.6",
+          "description": "backups + DR",
+          "deliverable": "backups + DR",
+          "validation": "dump+verify",
+          "rollback": "RB-006",
+          "prerequisite": "PHASE-6.12",
+          "feature_flag": "FEAT_OBSERVABILITY"
+        },
+        {
+          "id": "PHASE-6.7",
+          "description": "reviews/phase-6-director.md",
+          "deliverable": "reviews/phase-6-director.md",
+          "validation": "Director: \"would this be released?\"",
+          "rollback": "RB-006",
+          "prerequisite": "**FINAL HOLISTIC REVIEW**",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        },
+        {
+          "id": "PHASE-6.8",
+          "description": "reviews/phase-6-verify.md",
+          "deliverable": "reviews/phase-6-verify.md",
+          "validation": "reviewer confirms whole-repo integrity",
+          "rollback": "RB-006",
+          "prerequisite": "Peer verify",
+          "feature_flag": "FEAT_DEPLOYMENT"
+        }
+      ]
     }
   ],
   "modules": [
     {
       "id": "MOD-001",
       "name": "Brand Identity Manager",
-      "purpose": "FEAT_BRAND_IDENTITY",
-      "feature_flag": "Extract and store brand DNA from user input"
+      "purpose": "Extract and store brand DNA from user input",
+      "feature_flag": "FEAT_BRAND_IDENTITY"
     },
     {
       "id": "MOD-002",
       "name": "Script Generator",
-      "purpose": "FEAT_SCRIPT_GEN",
-      "feature_flag": "Generate commercial scripts from brand + tagline"
+      "purpose": "Generate commercial scripts from brand + tagline",
+      "feature_flag": "FEAT_SCRIPT_GEN"
     },
     {
       "id": "MOD-003",
       "name": "Storyboard Engine",
-      "purpose": "FEAT_STORYBOARD",
-      "feature_flag": "Convert scripts to visual scene breakdowns"
+      "purpose": "Convert scripts to visual scene breakdowns",
+      "feature_flag": "FEAT_STORYBOARD"
     },
     {
       "id": "MOD-004",
       "name": "Video Renderer",
-      "purpose": "FEAT_VIDEO_RENDER",
-      "feature_flag": "Generate video scenes using local Wan / cloud provider"
+      "purpose": "Generate video scenes using local Wan / cloud provider",
+      "feature_flag": "FEAT_VIDEO_RENDER"
     },
     {
       "id": "MOD-005",
       "name": "Audio Generator",
-      "purpose": "FEAT_AUDIO_GEN",
-      "feature_flag": "Create voiceovers and background music (TTS / music)"
+      "purpose": "Create voiceovers and background music (TTS / music)",
+      "feature_flag": "FEAT_AUDIO_GEN"
     },
     {
       "id": "MOD-006",
       "name": "Video Assembler",
-      "purpose": "FEAT_ASSEMBLY",
-      "feature_flag": "Combine video + audio + transitions via FFmpeg"
+      "purpose": "Combine video + audio + transitions via FFmpeg",
+      "feature_flag": "FEAT_ASSEMBLY"
     },
     {
       "id": "MOD-007",
       "name": "Campaign Scheduler",
-      "purpose": "FEAT_CAMPAIGN_SCHED",
-      "feature_flag": "Plan and trigger autonomous content pipelines"
+      "purpose": "Plan and trigger autonomous content pipelines",
+      "feature_flag": "FEAT_CAMPAIGN_SCHED"
     },
     {
       "id": "MOD-008",
       "name": "Content Calendar",
-      "purpose": "FEAT_CONTENT_CALENDAR",
-      "feature_flag": "Generate 30-day content plans"
+      "purpose": "Generate 30-day content plans",
+      "feature_flag": "FEAT_CONTENT_CALENDAR"
     },
     {
       "id": "MOD-009",
       "name": "Platform Adapter",
-      "purpose": "FEAT_PLATFORM_ADAPT",
-      "feature_flag": "Resize/reformat content per platform specs"
+      "purpose": "Resize/reformat content per platform specs",
+      "feature_flag": "FEAT_PLATFORM_ADAPT"
     },
     {
       "id": "MOD-010",
       "name": "Social Poster",
-      "purpose": "FEAT_SOCIAL_POST",
-      "feature_flag": "Auto-post to Instagram, TikTok, YouTube, etc."
+      "purpose": "Auto-post to Instagram, TikTok, YouTube, etc.",
+      "feature_flag": "FEAT_SOCIAL_POST"
     },
     {
       "id": "MOD-011",
       "name": "Analytics Tracker",
-      "purpose": "FEAT_ANALYTICS",
-      "feature_flag": "Track engagement metrics per post/platform"
+      "purpose": "Track engagement metrics per post/platform",
+      "feature_flag": "FEAT_ANALYTICS"
     },
     {
       "id": "MOD-012",
       "name": "Adaptive Learner",
-      "purpose": "FEAT_ADAPTIVE_LEARN",
-      "feature_flag": "Optimize future content based on performance data"
+      "purpose": "Optimize future content based on performance data",
+      "feature_flag": "FEAT_ADAPTIVE_LEARN"
     },
     {
       "id": "MOD-013",
       "name": "Dashboard UI",
-      "purpose": "FEAT_DASHBOARD",
-      "feature_flag": "Unified control panel for all campaigns"
+      "purpose": "Unified control panel for all campaigns",
+      "feature_flag": "FEAT_DASHBOARD"
     },
     {
       "id": "MOD-014",
       "name": "User Management",
-      "purpose": "FEAT_USER_MGMT",
-      "feature_flag": "Authentication, authorization, multi-tenant"
+      "purpose": "Authentication, authorization, multi-tenant",
+      "feature_flag": "FEAT_USER_MGMT"
     },
     {
       "id": "MOD-015",
       "name": "API Gateway",
-      "purpose": "FEAT_API_GATEWAY",
-      "feature_flag": "REST + GraphQL endpoints, rate limiting"
+      "purpose": "REST + GraphQL endpoints, rate limiting",
+      "feature_flag": "FEAT_API_GATEWAY"
     },
     {
       "id": "MOD-016",
       "name": "Job Queue",
-      "purpose": "FEAT_JOB_QUEUE",
-      "feature_flag": "RabbitMQ orchestration for async tasks"
+      "purpose": "RabbitMQ orchestration for async tasks",
+      "feature_flag": "FEAT_JOB_QUEUE"
     },
     {
       "id": "MOD-017",
       "name": "Asset Storage",
-      "purpose": "FEAT_ASSET_STORAGE",
-      "feature_flag": "S3/MinIO integration for video/image/audio"
+      "purpose": "S3/MinIO integration for video/image/audio",
+      "feature_flag": "FEAT_ASSET_STORAGE"
     },
     {
       "id": "MOD-018",
       "name": "Quality Checker",
-      "purpose": "FEAT_QUALITY_CHECK",
-      "feature_flag": "Automated brand consistency validation"
+      "purpose": "Automated brand consistency validation",
+      "feature_flag": "FEAT_QUALITY_CHECK"
     },
     {
       "id": "MOD-019",
       "name": "Notification System",
-      "purpose": "FEAT_NOTIFICATIONS",
-      "feature_flag": "Email/SMS alerts for campaign status"
+      "purpose": "Email/SMS alerts for campaign status",
+      "feature_flag": "FEAT_NOTIFICATIONS"
     },
     {
       "id": "MOD-020",
       "name": "Billing Integration",
-      "purpose": "FEAT_BILLING",
-      "feature_flag": "Stripe integration for subscription management"
+      "purpose": "Stripe integration for subscription management",
+      "feature_flag": "FEAT_BILLING"
     },
     {
       "id": "MOD-021",
       "name": "Image and Photo Studio",
-      "purpose": "FEAT_IMAGE_STUDIO",
-      "feature_flag": "Image generation plus inpaint/outpaint/restyle on canvas"
+      "purpose": "Image generation plus inpaint/outpaint/restyle on canvas",
+      "feature_flag": "FEAT_IMAGE_STUDIO"
     },
     {
       "id": "MOD-022",
       "name": "Backend Registry",
-      "purpose": "FEAT_BACKEND_REGISTRY",
-      "feature_flag": "Per-modality local to API adapter selection and provider keys"
+      "purpose": "Per-modality local to API adapter selection and provider keys",
+      "feature_flag": "FEAT_BACKEND_REGISTRY"
     },
     {
       "id": "MOD-023",
       "name": "STT Transcriber",
-      "purpose": "FEAT_STT",
-      "feature_flag": "Speech-to-text transcription (local Whisper or API)"
+      "purpose": "Speech-to-text transcription (local Whisper or API)",
+      "feature_flag": "FEAT_STT"
     },
     {
       "id": "MOD-024",
       "name": "Model Management",
-      "purpose": "FEAT_MODEL_MANAGEMENT",
-      "feature_flag": "Local model install/catalog plus provider key management"
+      "purpose": "Local model install/catalog plus provider key management",
+      "feature_flag": "FEAT_MODEL_MANAGEMENT"
     }
   ],
   "screens": [
@@ -244,180 +791,181 @@
     }
   ],
   "feature_flags": {
-    "Extract and store brand DNA from user input": {
+    "FEAT_BRAND_IDENTITY": {
       "phases": [],
       "modules": [
         "Brand Identity Manager"
       ],
-      "screens": []
+      "screens": [
+        "SCR-1-1"
+      ]
     },
-    "Generate commercial scripts from brand + tagline": {
+    "FEAT_SCRIPT_GEN": {
       "phases": [],
       "modules": [
         "Script Generator"
       ],
       "screens": []
     },
-    "Convert scripts to visual scene breakdowns": {
+    "FEAT_STORYBOARD": {
       "phases": [],
       "modules": [
         "Storyboard Engine"
       ],
       "screens": []
     },
-    "Generate video scenes using local Wan / cloud provider": {
+    "FEAT_VIDEO_RENDER": {
       "phases": [],
       "modules": [
         "Video Renderer"
       ],
       "screens": []
     },
-    "Create voiceovers and background music (TTS / music)": {
+    "FEAT_AUDIO_GEN": {
       "phases": [],
       "modules": [
         "Audio Generator"
       ],
       "screens": []
     },
-    "Combine video + audio + transitions via FFmpeg": {
+    "FEAT_ASSEMBLY": {
       "phases": [],
       "modules": [
         "Video Assembler"
       ],
       "screens": []
     },
-    "Plan and trigger autonomous content pipelines": {
+    "FEAT_CAMPAIGN_SCHED": {
       "phases": [],
       "modules": [
         "Campaign Scheduler"
       ],
       "screens": []
     },
-    "Generate 30-day content plans": {
+    "FEAT_CONTENT_CALENDAR": {
       "phases": [],
       "modules": [
         "Content Calendar"
       ],
       "screens": []
     },
-    "Resize/reformat content per platform specs": {
+    "FEAT_PLATFORM_ADAPT": {
       "phases": [],
       "modules": [
         "Platform Adapter"
       ],
       "screens": []
     },
-    "Auto-post to Instagram, TikTok, YouTube, etc.": {
+    "FEAT_SOCIAL_POST": {
       "phases": [],
       "modules": [
         "Social Poster"
       ],
       "screens": []
     },
-    "Track engagement metrics per post/platform": {
+    "FEAT_ANALYTICS": {
       "phases": [],
       "modules": [
         "Analytics Tracker"
       ],
       "screens": []
     },
-    "Optimize future content based on performance data": {
+    "FEAT_ADAPTIVE_LEARN": {
       "phases": [],
       "modules": [
         "Adaptive Learner"
       ],
       "screens": []
     },
-    "Unified control panel for all campaigns": {
+    "FEAT_DASHBOARD": {
       "phases": [],
       "modules": [
         "Dashboard UI"
       ],
-      "screens": []
+      "screens": [
+        "SCR-4-1"
+      ]
     },
-    "Authentication, authorization, multi-tenant": {
+    "FEAT_USER_MGMT": {
       "phases": [],
       "modules": [
         "User Management"
       ],
       "screens": []
     },
-    "REST + GraphQL endpoints, rate limiting": {
+    "FEAT_API_GATEWAY": {
       "phases": [],
       "modules": [
         "API Gateway"
       ],
       "screens": []
     },
-    "RabbitMQ orchestration for async tasks": {
+    "FEAT_JOB_QUEUE": {
       "phases": [],
       "modules": [
         "Job Queue"
       ],
       "screens": []
     },
-    "S3/MinIO integration for video/image/audio": {
+    "FEAT_ASSET_STORAGE": {
       "phases": [],
       "modules": [
         "Asset Storage"
       ],
       "screens": []
     },
-    "Automated brand consistency validation": {
+    "FEAT_QUALITY_CHECK": {
       "phases": [],
       "modules": [
         "Quality Checker"
       ],
       "screens": []
     },
-    "Email/SMS alerts for campaign status": {
+    "FEAT_NOTIFICATIONS": {
       "phases": [],
       "modules": [
         "Notification System"
       ],
       "screens": []
     },
-    "Stripe integration for subscription management": {
+    "FEAT_BILLING": {
       "phases": [],
       "modules": [
         "Billing Integration"
       ],
       "screens": []
     },
-    "Image generation plus inpaint/outpaint/restyle on canvas": {
+    "FEAT_IMAGE_STUDIO": {
       "phases": [],
       "modules": [
         "Image and Photo Studio"
       ],
-      "screens": []
+      "screens": [
+        "SCR-6-1"
+      ]
     },
-    "Per-modality local to API adapter selection and provider keys": {
+    "FEAT_BACKEND_REGISTRY": {
       "phases": [],
       "modules": [
         "Backend Registry"
       ],
-      "screens": []
+      "screens": [
+        "SCR-7-1"
+      ]
     },
-    "Speech-to-text transcription (local Whisper or API)": {
+    "FEAT_STT": {
       "phases": [],
       "modules": [
         "STT Transcriber"
       ],
       "screens": []
     },
-    "Local model install/catalog plus provider key management": {
+    "FEAT_MODEL_MANAGEMENT": {
       "phases": [],
       "modules": [
         "Model Management"
       ],
       "screens": []
-    },
-    "FEAT_BRAND_IDENTITY": {
-      "phases": [],
-      "modules": [],
-      "screens": [
-        "SCR-1-1"
-      ]
     },
     "FEAT_CAMPAIGN_PIPELINE": {
       "phases": [],
@@ -433,68 +981,534 @@
         "SCR-3-1"
       ]
     },
-    "FEAT_DASHBOARD": {
-      "phases": [],
-      "modules": [],
-      "screens": [
-        "SCR-4-1"
-      ]
-    },
     "FEAT_ANALYTICS_ADAPTIVE": {
       "phases": [],
       "modules": [],
       "screens": [
         "SCR-5-1"
       ]
-    },
-    "FEAT_IMAGE_STUDIO": {
-      "phases": [],
-      "modules": [],
-      "screens": [
-        "SCR-6-1"
-      ]
-    },
-    "FEAT_BACKEND_REGISTRY": {
-      "phases": [],
-      "modules": [],
-      "screens": [
-        "SCR-7-1"
-      ]
     }
   },
   "phases_data": [
     {
-      "deliverables": [],
+      "deliverables": [
+        {
+          "id": "PHASE-0.1",
+          "deliverable": "repo init, Dockerfile, CI",
+          "validation": "health 200",
+          "rollback": "RB-000",
+          "prerequisite": "Repo access",
+          "feature_flag": "FEAT_USER_MGMT"
+        },
+        {
+          "id": "PHASE-0.2",
+          "deliverable": "project structure (src/, tests/, docs/)",
+          "validation": "tree exists",
+          "rollback": "RB-000",
+          "prerequisite": "PHASE-0.1",
+          "feature_flag": "FEAT_USER_MGMT"
+        },
+        {
+          "id": "PHASE-0.3",
+          "deliverable": "DB schema init (V001__init_schema.sql)",
+          "validation": "psql applies",
+          "rollback": "RB-000",
+          "prerequisite": "PHASE-0.2",
+          "feature_flag": "FEAT_ASSET_STORAGE"
+        },
+        {
+          "id": "PHASE-0.4",
+          "deliverable": "API skeleton (Express+GraphQL, /health)",
+          "validation": "health 200",
+          "rollback": "RB-000",
+          "prerequisite": "PHASE-0.3",
+          "feature_flag": "FEAT_API_GATEWAY"
+        },
+        {
+          "id": "PHASE-0.5",
+          "deliverable": "auth (JWT register/login)",
+          "validation": "token issued",
+          "rollback": "RB-000",
+          "prerequisite": "PHASE-0.4",
+          "feature_flag": "FEAT_USER_MGMT"
+        },
+        {
+          "id": "PHASE-0.6",
+          "deliverable": "user mgmt (RBAC)",
+          "validation": "role enforced",
+          "rollback": "RB-000",
+          "prerequisite": "PHASE-0.5",
+          "feature_flag": "FEAT_USER_MGMT"
+        },
+        {
+          "id": "PHASE-0.7",
+          "deliverable": "object storage (MinIO/S3)",
+          "validation": "upload/download",
+          "rollback": "RB-000",
+          "prerequisite": "PHASE-0.6",
+          "feature_flag": "FEAT_ASSET_STORAGE"
+        },
+        {
+          "id": "PHASE-0.8",
+          "deliverable": "job queue (RabbitMQ)",
+          "validation": "job enqueues",
+          "rollback": "RB-000",
+          "prerequisite": "PHASE-0.7",
+          "feature_flag": "FEAT_JOB_QUEUE"
+        },
+        {
+          "id": "PHASE-0.9",
+          "deliverable": "logging framework",
+          "validation": "structured logs",
+          "rollback": "RB-000",
+          "prerequisite": "PHASE-0.8",
+          "feature_flag": "FEAT_OBSERVABILITY"
+        },
+        {
+          "id": "PHASE-0.10",
+          "deliverable": "error middleware",
+          "validation": "centralized errors",
+          "rollback": "RB-000",
+          "prerequisite": "PHASE-0.9",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        },
+        {
+          "id": "PHASE-0.11",
+          "deliverable": "reviews/phase-0-verify.md",
+          "validation": "reviewer confirms runnable",
+          "rollback": "RB-000",
+          "prerequisite": "Peer verify",
+          "feature_flag": "FEAT_USER_MGMT"
+        }
+      ],
       "flag": ""
     },
     {
-      "deliverables": [],
+      "deliverables": [
+        {
+          "id": "PHASE-1.1",
+          "deliverable": "brand extraction (MOD-001)",
+          "validation": "colors extracted",
+          "rollback": "RB-001",
+          "prerequisite": "PHASE-0 complete",
+          "feature_flag": "FEAT_AI_GENERATION"
+        },
+        {
+          "id": "PHASE-1.2",
+          "deliverable": "script gen (MOD-002)",
+          "validation": "30s script",
+          "rollback": "RB-001",
+          "prerequisite": "PHASE-1.2",
+          "feature_flag": "FEAT_SCRIPT_GEN"
+        },
+        {
+          "id": "PHASE-1.3",
+          "deliverable": "storyboard (MOD-003)",
+          "validation": "8-12 scenes",
+          "rollback": "RB-001",
+          "prerequisite": "PHASE-1.3",
+          "feature_flag": "FEAT_STORYBOARD"
+        },
+        {
+          "id": "PHASE-1.4",
+          "deliverable": "video render (MOD-004, local Wan/API)",
+          "validation": "scene renders",
+          "rollback": "RB-001",
+          "prerequisite": "PHASE-1.4",
+          "feature_flag": "FEAT_VIDEO_RENDER"
+        },
+        {
+          "id": "PHASE-1.5",
+          "deliverable": "audio (MOD-005, TTS/music)",
+          "validation": "voiceover+music",
+          "rollback": "RB-001",
+          "prerequisite": "PHASE-1.5",
+          "feature_flag": "FEAT_AUDIO_GEN"
+        },
+        {
+          "id": "PHASE-1.6",
+          "deliverable": "assembly (MOD-006, FFmpeg)",
+          "validation": "mp4 output",
+          "rollback": "RB-001",
+          "prerequisite": "PHASE-1.6",
+          "feature_flag": "FEAT_ASSEMBLY"
+        },
+        {
+          "id": "PHASE-1.7",
+          "deliverable": "image gen + inpaint (MOD-021)",
+          "validation": "canvas renders",
+          "rollback": "RB-001",
+          "prerequisite": "PHASE-1.7",
+          "feature_flag": "FEAT_IMAGE_STUDIO"
+        },
+        {
+          "id": "PHASE-1.8",
+          "deliverable": "backend registry (MOD-022)",
+          "validation": "local<->api switch",
+          "rollback": "RB-001",
+          "prerequisite": "PHASE-1.8",
+          "feature_flag": "FEAT_BACKEND_REGISTRY"
+        },
+        {
+          "id": "PHASE-1.9",
+          "deliverable": "transcription (MOD-023)",
+          "validation": "transcript",
+          "rollback": "RB-001",
+          "prerequisite": "PHASE-1.9",
+          "feature_flag": "FEAT_STT"
+        },
+        {
+          "id": "PHASE-1.10",
+          "deliverable": "quality checker (MOD-018)",
+          "validation": "brand-consistency",
+          "rollback": "RB-001",
+          "prerequisite": "PHASE-1.10",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        },
+        {
+          "id": "PHASE-1.11",
+          "deliverable": "reviews/phase-1-verify.md",
+          "validation": "reviewer confirms E2E ad",
+          "rollback": "RB-001",
+          "prerequisite": "Peer verify",
+          "feature_flag": "FEAT_AI_GENERATION"
+        }
+      ],
       "flag": ""
     },
     {
-      "deliverables": [],
+      "deliverables": [
+        {
+          "id": "PHASE-2.1",
+          "deliverable": "campaign svc (MOD-007)",
+          "validation": "campaign created",
+          "rollback": "RB-002",
+          "prerequisite": "PHASE-1 complete",
+          "feature_flag": "FEAT_CAMPAIGN_SCHED"
+        },
+        {
+          "id": "PHASE-2.2",
+          "deliverable": "calendar (MOD-008)",
+          "validation": "30-day plan",
+          "rollback": "RB-002",
+          "prerequisite": "PHASE-2.2",
+          "feature_flag": "FEAT_CONTENT_CALENDAR"
+        },
+        {
+          "id": "PHASE-2.3",
+          "deliverable": "batch gen",
+          "validation": "30 posts",
+          "rollback": "RB-002",
+          "prerequisite": "PHASE-2.3",
+          "feature_flag": "FEAT_CAMPAIGN_SCHED"
+        },
+        {
+          "id": "PHASE-2.4",
+          "deliverable": "platform adapt (MOD-009)",
+          "validation": "resized",
+          "rollback": "RB-002",
+          "prerequisite": "PHASE-2.4",
+          "feature_flag": "FEAT_PLATFORM_ADAPT"
+        },
+        {
+          "id": "PHASE-2.5",
+          "deliverable": "caption gen",
+          "validation": "per-platform",
+          "rollback": "RB-002",
+          "prerequisite": "PHASE-2.5",
+          "feature_flag": "FEAT_PLATFORM_ADAPT"
+        },
+        {
+          "id": "PHASE-2.6",
+          "deliverable": "scheduler",
+          "validation": "optimal times",
+          "rollback": "RB-002",
+          "prerequisite": "PHASE-2.6",
+          "feature_flag": "FEAT_CAMPAIGN_SCHED"
+        },
+        {
+          "id": "PHASE-2.7",
+          "deliverable": "campaign API",
+          "validation": "CRUD+pause",
+          "rollback": "RB-002",
+          "prerequisite": "PHASE-2.7",
+          "feature_flag": "FEAT_DASHBOARD"
+        },
+        {
+          "id": "PHASE-2.8",
+          "deliverable": "reviews/phase-2-verify.md",
+          "validation": "reviewer confirms calendar",
+          "rollback": "RB-002",
+          "prerequisite": "Peer verify",
+          "feature_flag": "FEAT_CONTENT_CALENDAR"
+        }
+      ],
       "flag": ""
     },
     {
-      "deliverables": [],
+      "deliverables": [
+        {
+          "id": "PHASE-3.1",
+          "deliverable": "IG/TikTok/YT/LI/X/FB (MOD-010)",
+          "validation": "sandbox post",
+          "rollback": "RB-003",
+          "prerequisite": "PHASE-2 complete",
+          "feature_flag": "FEAT_SOCIAL_POST"
+        },
+        {
+          "id": "PHASE-3.2",
+          "deliverable": "posting svc (retry/backoff)",
+          "validation": "3 attempts",
+          "rollback": "RB-003",
+          "prerequisite": "PHASE-3.6",
+          "feature_flag": "FEAT_SOCIAL_POST"
+        },
+        {
+          "id": "PHASE-3.3",
+          "deliverable": "metrics ingest (MOD-011)",
+          "validation": "engagement",
+          "rollback": "RB-003",
+          "prerequisite": "PHASE-3.7",
+          "feature_flag": "FEAT_ANALYTICS"
+        },
+        {
+          "id": "PHASE-3.4",
+          "deliverable": "account mgmt API",
+          "validation": "connect/disconnect",
+          "rollback": "RB-003",
+          "prerequisite": "PHASE-3.8",
+          "feature_flag": "FEAT_SOCIAL_POST"
+        },
+        {
+          "id": "PHASE-3.5",
+          "deliverable": "token refresh",
+          "validation": "auto-renew",
+          "rollback": "RB-003",
+          "prerequisite": "PHASE-3.9",
+          "feature_flag": "FEAT_SOCIAL_POST"
+        },
+        {
+          "id": "PHASE-3.6",
+          "deliverable": "reviews/phase-3-verify.md",
+          "validation": "reviewer confirms multi-post",
+          "rollback": "RB-003",
+          "prerequisite": "Peer verify",
+          "feature_flag": "FEAT_SOCIAL_POST"
+        }
+      ],
       "flag": ""
     },
     {
-      "deliverables": [],
+      "deliverables": [
+        {
+          "id": "PHASE-4.1",
+          "deliverable": "layout, auth UI (MOD-013)",
+          "validation": "login works",
+          "rollback": "RB-004",
+          "prerequisite": "PHASE-3 complete",
+          "feature_flag": "FEAT_DASHBOARD"
+        },
+        {
+          "id": "PHASE-4.2",
+          "deliverable": "brand mgmt UI",
+          "validation": "CRUD brand",
+          "rollback": "RB-004",
+          "prerequisite": "PHASE-4.3",
+          "feature_flag": "FEAT_BRAND_IDENTITY"
+        },
+        {
+          "id": "PHASE-4.3",
+          "deliverable": "campaign mgmt UI",
+          "validation": "pause/resume",
+          "rollback": "RB-004",
+          "prerequisite": "PHASE-4.4",
+          "feature_flag": "FEAT_DASHBOARD"
+        },
+        {
+          "id": "PHASE-4.4",
+          "deliverable": "calendar UI (drag-drop)",
+          "validation": "reschedule",
+          "rollback": "RB-004",
+          "prerequisite": "PHASE-4.5",
+          "feature_flag": "FEAT_CONTENT_CALENDAR"
+        },
+        {
+          "id": "PHASE-4.5",
+          "deliverable": "content library UI",
+          "validation": "grid+download",
+          "rollback": "RB-004",
+          "prerequisite": "PHASE-4.6",
+          "feature_flag": "FEAT_ASSET_STORAGE"
+        },
+        {
+          "id": "PHASE-4.6",
+          "deliverable": "analytics charts",
+          "validation": "top posts",
+          "rollback": "RB-004",
+          "prerequisite": "PHASE-4.7",
+          "feature_flag": "FEAT_ANALYTICS_ADAPTIVE"
+        },
+        {
+          "id": "PHASE-4.7",
+          "deliverable": "studio canvas UI (MOD-021)",
+          "validation": "inpaint flow",
+          "rollback": "RB-004",
+          "prerequisite": "PHASE-4.8",
+          "feature_flag": "FEAT_IMAGE_STUDIO"
+        },
+        {
+          "id": "PHASE-4.8",
+          "deliverable": "backend selector UI (MOD-022)",
+          "validation": "switch backend",
+          "rollback": "RB-004",
+          "prerequisite": "PHASE-4.9",
+          "feature_flag": "FEAT_BACKEND_REGISTRY"
+        },
+        {
+          "id": "PHASE-4.9",
+          "deliverable": "reviews/phase-4-verify.md",
+          "validation": "reviewer confirms WCAG AA",
+          "rollback": "RB-004",
+          "prerequisite": "Peer verify",
+          "feature_flag": "FEAT_DASHBOARD"
+        }
+      ],
       "flag": ""
     },
     {
-      "deliverables": [],
+      "deliverables": [
+        {
+          "id": "PHASE-5.1",
+          "deliverable": "aggregation (MOD-011)",
+          "validation": "rollups",
+          "rollback": "RB-005",
+          "prerequisite": "PHASE-4 complete",
+          "feature_flag": "FEAT_ANALYTICS"
+        },
+        {
+          "id": "PHASE-5.2",
+          "deliverable": "engagement rate",
+          "validation": "computed",
+          "rollback": "RB-005",
+          "prerequisite": "PHASE-5.2",
+          "feature_flag": "FEAT_ANALYTICS"
+        },
+        {
+          "id": "PHASE-5.3",
+          "deliverable": "pattern extraction (MOD-012)",
+          "validation": "patterns",
+          "rollback": "RB-005",
+          "prerequisite": "PHASE-5.4",
+          "feature_flag": "FEAT_ADAPTIVE_LEARN"
+        },
+        {
+          "id": "PHASE-5.4",
+          "deliverable": "adaptive algo",
+          "validation": "calendar adj",
+          "rollback": "RB-005",
+          "prerequisite": "PHASE-5.5",
+          "feature_flag": "FEAT_ADAPTIVE_LEARN"
+        },
+        {
+          "id": "PHASE-5.5",
+          "deliverable": "A/B test",
+          "validation": "winner",
+          "rollback": "RB-005",
+          "prerequisite": "PHASE-5.6",
+          "feature_flag": "FEAT_ADAPTIVE_LEARN"
+        },
+        {
+          "id": "PHASE-5.6",
+          "deliverable": "weekly report",
+          "validation": "PDF+email",
+          "rollback": "RB-005",
+          "prerequisite": "PHASE-5.7",
+          "feature_flag": "FEAT_ANALYTICS"
+        },
+        {
+          "id": "PHASE-5.7",
+          "deliverable": "reviews/phase-5-verify.md",
+          "validation": "reviewer confirms learning loop",
+          "rollback": "RB-005",
+          "prerequisite": "Peer verify",
+          "feature_flag": "FEAT_ADAPTIVE_LEARN"
+        }
+      ],
       "flag": ""
     },
     {
-      "deliverables": [],
+      "deliverables": [
+        {
+          "id": "PHASE-6.1",
+          "deliverable": "docker images (MOD-014)",
+          "validation": "build ok",
+          "rollback": "RB-006",
+          "prerequisite": "PHASE-5 complete",
+          "feature_flag": "FEAT_DEPLOYMENT"
+        },
+        {
+          "id": "PHASE-6.2",
+          "deliverable": "k8s manifests",
+          "validation": "apply ok",
+          "rollback": "RB-006",
+          "prerequisite": "PHASE-6.2",
+          "feature_flag": "FEAT_DEPLOYMENT"
+        },
+        {
+          "id": "PHASE-6.3",
+          "deliverable": "CI/CD (GitHub Actions)",
+          "validation": "test+audit",
+          "rollback": "RB-006",
+          "prerequisite": "PHASE-6.4",
+          "feature_flag": "FEAT_DEPLOYMENT"
+        },
+        {
+          "id": "PHASE-6.4",
+          "deliverable": "prod migrations (zero-downtime)",
+          "validation": "applies",
+          "rollback": "RB-006",
+          "prerequisite": "PHASE-6.5",
+          "feature_flag": "FEAT_ASSET_STORAGE"
+        },
+        {
+          "id": "PHASE-6.5",
+          "deliverable": "secrets mgmt",
+          "validation": "vault ok",
+          "rollback": "RB-006",
+          "prerequisite": "PHASE-6.6",
+          "feature_flag": "FEAT_USER_MGMT"
+        },
+        {
+          "id": "PHASE-6.6",
+          "deliverable": "backups + DR",
+          "validation": "dump+verify",
+          "rollback": "RB-006",
+          "prerequisite": "PHASE-6.12",
+          "feature_flag": "FEAT_OBSERVABILITY"
+        },
+        {
+          "id": "PHASE-6.7",
+          "deliverable": "reviews/phase-6-director.md",
+          "validation": "Director: \"would this be released?\"",
+          "rollback": "RB-006",
+          "prerequisite": "**FINAL HOLISTIC REVIEW**",
+          "feature_flag": "FEAT_QUALITY_CHECK"
+        },
+        {
+          "id": "PHASE-6.8",
+          "deliverable": "reviews/phase-6-verify.md",
+          "validation": "reviewer confirms whole-repo integrity",
+          "rollback": "RB-006",
+          "prerequisite": "Peer verify",
+          "feature_flag": "FEAT_DEPLOYMENT"
+        }
+      ],
       "flag": ""
     }
   ],
   "enforcement": {
-    "mode": "plain",
-    "validators": false,
+    "mode": "loop",
+    "validators": true,
     "auto_verify": false,
     "phase_gates": true
   }

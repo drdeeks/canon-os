@@ -1,0 +1,747 @@
+{
+  "name": "blueprint-Canon-OS",
+  "project": "/home/drdeek/projects/canon-os/CanonOS",
+  "created_at": "2026-07-17T09:57:41Z",
+  "steps": [
+    {
+      "index": 0,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-00-Foundation",
+      "state": "active",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 1,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-00-step-01-PHASE-0.1-repo-init,-Dockerfile,-CI",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 2,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-00-step-02-PHASE-0.2-project-structure-(src-,-tests-,-docs-)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 3,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-00-step-03-PHASE-0.3-DB-schema-init-(V001__init_schema.sql)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 4,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-00-step-04-PHASE-0.4-API-skeleton-(Express+GraphQL,-health)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 5,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-00-step-05-PHASE-0.5-auth-(JWT-register-login)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 6,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-00-step-06-PHASE-0.6-user-mgmt-(RBAC)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 7,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-00-step-07-PHASE-0.7-object-storage-(MinIO-S3)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 8,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-00-step-08-PHASE-0.8-job-queue-(RabbitMQ)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 9,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-00-step-09-PHASE-0.9-logging-framework",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 10,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-00-step-10-PHASE-0.10-error-middleware",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 11,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-00-step-11-PHASE-0.11-reviews-phase-0-verify.md",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 12,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-00-step-12-PHASE-0-V-Validation-gate",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 13,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-01-Core-AI-Engine",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 14,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-01-step-01-PHASE-1.1-brand-extraction-(MOD-001)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 15,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-01-step-02-PHASE-1.2-script-gen-(MOD-002)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 16,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-01-step-03-PHASE-1.3-storyboard-(MOD-003)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 17,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-01-step-04-PHASE-1.4-video-render-(MOD-004,-local-Wan-API)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 18,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-01-step-05-PHASE-1.5-audio-(MOD-005,-TTS-music)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 19,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-01-step-06-PHASE-1.6-assembly-(MOD-006,-FFmpeg)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 20,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-01-step-07-PHASE-1.7-image-gen-+-inpaint-(MOD-021)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 21,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-01-step-08-PHASE-1.8-backend-registry-(MOD-022)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 22,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-01-step-09-PHASE-1.9-transcription-(MOD-023)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 23,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-01-step-10-PHASE-1.10-quality-checker-(MOD-018)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 24,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-01-step-11-PHASE-1.11-reviews-phase-1-verify.md",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 25,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-01-step-12-PHASE-1-V-Validation-gate",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 26,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-02-Content-Generation",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 27,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-02-step-01-PHASE-2.1-campaign-svc-(MOD-007)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 28,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-02-step-02-PHASE-2.2-calendar-(MOD-008)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 29,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-02-step-03-PHASE-2.3-batch-gen",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 30,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-02-step-04-PHASE-2.4-platform-adapt-(MOD-009)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 31,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-02-step-05-PHASE-2.5-caption-gen",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 32,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-02-step-06-PHASE-2.6-scheduler",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 33,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-02-step-07-PHASE-2.7-campaign-API",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 34,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-02-step-08-PHASE-2.8-reviews-phase-2-verify.md",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 35,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-02-step-09-PHASE-2-V-Validation-gate",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 36,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-03-Social-Integration",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 37,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-03-step-01-PHASE-3.1-IG-TikTok-YT-LI-X-FB-(MOD-010)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 38,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-03-step-02-PHASE-3.2-posting-svc-(retry-backoff)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 39,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-03-step-03-PHASE-3.3-metrics-ingest-(MOD-011)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 40,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-03-step-04-PHASE-3.4-account-mgmt-API",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 41,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-03-step-05-PHASE-3.5-token-refresh",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 42,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-03-step-06-PHASE-3.6-reviews-phase-3-verify.md",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 43,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-03-step-07-PHASE-3-V-Validation-gate",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 44,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-04-UI-Dashboard",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 45,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-04-step-01-PHASE-4.1-layout,-auth-UI-(MOD-013)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 46,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-04-step-02-PHASE-4.2-brand-mgmt-UI",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 47,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-04-step-03-PHASE-4.3-campaign-mgmt-UI",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 48,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-04-step-04-PHASE-4.4-calendar-UI-(drag-drop)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 49,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-04-step-05-PHASE-4.5-content-library-UI",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 50,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-04-step-06-PHASE-4.6-analytics-charts",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 51,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-04-step-07-PHASE-4.7-studio-canvas-UI-(MOD-021)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 52,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-04-step-08-PHASE-4.8-backend-selector-UI-(MOD-022)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 53,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-04-step-09-PHASE-4.9-reviews-phase-4-verify.md",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 54,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-04-step-10-PHASE-4-V-Validation-gate",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 55,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-05-Analytics-&-Optimization",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 56,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-05-step-01-PHASE-5.1-aggregation-(MOD-011)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 57,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-05-step-02-PHASE-5.2-engagement-rate",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 58,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-05-step-03-PHASE-5.3-pattern-extraction-(MOD-012)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 59,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-05-step-04-PHASE-5.4-adaptive-algo",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 60,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-05-step-05-PHASE-5.5-A-B-test",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 61,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-05-step-06-PHASE-5.6-weekly-report",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 62,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-05-step-07-PHASE-5.7-reviews-phase-5-verify.md",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 63,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-05-step-08-PHASE-5-V-Validation-gate",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 64,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-06-Deployment-+-Final-Holistic-Re",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 65,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-06-step-01-PHASE-6.1-docker-images-(MOD-014)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 66,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-06-step-02-PHASE-6.2-k8s-manifests",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 67,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-06-step-03-PHASE-6.3-CI-CD-(GitHub-Actions)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 68,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-06-step-04-PHASE-6.4-prod-migrations-(zero-downtime)",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 69,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-06-step-05-PHASE-6.5-secrets-mgmt",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 70,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-06-step-06-PHASE-6.6-backups-+-DR",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 71,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-06-step-07-PHASE-6.7-reviews-phase-6-director.md",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 72,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-06-step-08-PHASE-6.8-reviews-phase-6-verify.md",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    },
+    {
+      "index": 73,
+      "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-06-step-09-PHASE-6-V-Validation-gate",
+      "state": "locked",
+      "validator": null,
+      "created_at": "2026-07-17T09:57:41Z",
+      "verified_at": null,
+      "completed_at": null,
+      "attempts": 0
+    }
+  ]
+}
