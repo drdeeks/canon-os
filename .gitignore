@@ -2,6 +2,7 @@
 __pycache__/
 *.pyc
 .venv/
+node_modules/
 docs/hackathon/crew/canon-os-hackathon/shared/.env
 docs/hackathon/crew/canon-os-hackathon/shared/.agent/*.pid
 docs/hackathon/crew/canon-os-hackathon/shared/.agent/*.sock

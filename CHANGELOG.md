@@ -50,3 +50,17 @@ Impact      : Low
 Testing     : validate_blueprint.py 34/34; no leftover hackathon-submission strings remain
 Rollback    : Restore from .trash/ if needed
 ```
+
+## CL-0004 — API Skeleton and Liveness Gate
+
+```yaml
+Date        : 2026-07-17
+Author      : Canon OS Foundation <foundation@canon-os.local>
+Type        : feature
+Modules     : MOD-015
+Description : Add the isolated Express and GraphQL API skeleton with a /health
+              liveness endpoint and an initial GraphQL health query.
+Impact      : Low
+Testing     : Node HTTP integration tests for health and GraphQL requests
+Rollback    : Revert the API skeleton commit
+```
