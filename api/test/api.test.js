@@ -7,6 +7,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { createApp, SERVICE_NAME } = require("../src/app");
 const { createInMemoryUserStore } = require("../src/auth/user-store");
+const { createInMemoryAssetStore } = require("../src/storage/asset-store");
 
 const ACCESS_SECRET = "test-access-secret";
 const REFRESH_SECRET = "test-refresh-secret";
@@ -21,6 +22,7 @@ test.before(async () => {
     userStore,
     accessTokenSecret: ACCESS_SECRET,
     refreshTokenSecret: REFRESH_SECRET,
+    assetStore: createInMemoryAssetStore(),
   }));
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   baseUrl = `http://127.0.0.1:${server.address().port}`;
@@ -203,4 +205,61 @@ test("RBAC rejects refresh tokens, malformed roles, and missing users", async ()
     body: JSON.stringify({ role: "viewer" }),
   });
   assert.equal(missingUser.status, 404);
+});
+
+test("asset storage uploads and downloads an authenticated user's binary asset", async () => {
+  const creator = await registerUser("asset-creator@example.com", "Asset Creator");
+  const payload = Buffer.from("Canon OS stores image, video, and audio assets.");
+  const upload = await fetch(`${baseUrl}/api/v1/assets`, {
+    method: "POST",
+    headers: {
+      ...bearer(creator.access_token),
+      "content-type": "application/octet-stream",
+      "x-file-name": "campaign-brief.txt",
+    },
+    body: payload,
+  });
+
+  assert.equal(upload.status, 201);
+  const asset = await upload.json();
+  assert.match(asset.asset_id, /^[0-9a-f-]{36}$/);
+  assert.equal(asset.size_bytes, payload.length);
+
+  const download = await fetch(`${baseUrl}${asset.download_url}`, { headers: bearer(creator.access_token) });
+  assert.equal(download.status, 200);
+  assert.equal(download.headers.get("content-type"), "application/octet-stream");
+  assert.match(download.headers.get("content-disposition"), /campaign-brief\.txt/);
+  assert.deepEqual(Buffer.from(await download.arrayBuffer()), payload);
+
+  const otherUser = await registerUser("asset-other@example.com", "Other User");
+  const crossTenantDownload = await fetch(`${baseUrl}${asset.download_url}`, { headers: bearer(otherUser.access_token) });
+  assert.equal(crossTenantDownload.status, 404, "asset keys are isolated by authenticated user");
+});
+
+test("asset storage rejects unauthenticated, malformed, and empty uploads", async () => {
+  const unauthenticated = await fetch(`${baseUrl}/api/v1/assets`, {
+    method: "POST",
+    headers: { "content-type": "application/octet-stream", "x-file-name": "asset.bin" },
+    body: Buffer.from("asset"),
+  });
+  assert.equal(unauthenticated.status, 401);
+
+  const creator = await registerUser("invalid-asset@example.com", "Invalid Asset");
+  const malformed = await fetch(`${baseUrl}/api/v1/assets`, {
+    method: "POST",
+    headers: { ...bearer(creator.access_token), "content-type": "application/octet-stream" },
+    body: Buffer.from("asset"),
+  });
+  assert.equal(malformed.status, 400);
+
+  const empty = await fetch(`${baseUrl}/api/v1/assets`, {
+    method: "POST",
+    headers: {
+      ...bearer(creator.access_token),
+      "content-type": "application/octet-stream",
+      "x-file-name": "empty.bin",
+    },
+    body: Buffer.alloc(0),
+  });
+  assert.equal(empty.status, 400);
 });

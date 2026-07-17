@@ -51,3 +51,21 @@ Without it, the server uses an in-memory store suitable only for local
 development and tests. Production requires both `JWT_ACCESS_SECRET` and
 `JWT_REFRESH_SECRET`; development uses non-production defaults for a runnable
 local API.
+
+## Asset storage (MinIO/S3)
+
+Phase 0.7 stores binary video, image, and audio assets through the S3 API. Start
+the local MinIO service from the repository root with `docker compose up -d minio`.
+Then run the API with `S3_ENDPOINT=http://127.0.0.1:9000`,
+`S3_ACCESS_KEY=canon-minio-admin`, and
+`S3_SECRET_KEY=canon-minio-development-secret` (override these development
+credentials in any shared or production environment). The API creates the
+`canon-assets` bucket and enables object versioning before its first upload.
+
+```text
+POST /api/v1/assets              authenticated; octet-stream body + x-file-name
+GET  /api/v1/assets/:assetId     authenticated download
+```
+
+Assets are stored under an authenticated user's prefix, so another user cannot
+retrieve a known asset ID. Upload returns the asset ID and download path.

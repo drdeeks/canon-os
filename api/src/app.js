@@ -5,6 +5,8 @@ const { buildSchema, graphql } = require("graphql");
 const { createAuthService } = require("./auth/service");
 const { createInMemoryUserStore, createPostgresUserStore } = require("./auth/user-store");
 const { ROLES, ROLE_VALUES, createAuthorization } = require("./auth/authorization");
+const { createS3AssetStore } = require("./storage/asset-store");
+const { randomUUID } = require("node:crypto");
 
 const SERVICE_NAME = "canon-os-api";
 const schema = buildSchema(`
@@ -34,6 +36,9 @@ function createApp(options = {}) {
     (isProduction ? null : "development-refresh-secret-not-for-production");
   const auth = createAuthService({ userStore, accessTokenSecret, refreshTokenSecret });
   const authorization = createAuthorization({ userStore, accessTokenSecret });
+  const assetStore = options.assetStore || (process.env.S3_ENDPOINT
+    ? createS3AssetStore()
+    : null);
 
   app.disable("x-powered-by");
   app.use(express.json({ limit: "1mb" }));
@@ -102,6 +107,68 @@ function createApp(options = {}) {
         }
         return response.status(200).json({ user });
       } catch (error) {
+        return next(error);
+      }
+    },
+  );
+
+  function requireAssetStore(_request, response, next) {
+    if (!assetStore) {
+      return response.status(503).json({ error: "Asset storage is not configured." });
+    }
+    return next();
+  }
+
+  app.post(
+    "/api/v1/assets",
+    authorization.authenticate,
+    requireAssetStore,
+    express.raw({ type: "application/octet-stream", limit: "100mb" }),
+    async (request, response, next) => {
+      try {
+        const filename = request.get("x-file-name");
+        if (typeof filename !== "string" || filename.trim() === "" || filename.length > 255) {
+          return response.status(400).json({ error: "x-file-name must contain a filename up to 255 characters." });
+        }
+        if (!Buffer.isBuffer(request.body) || request.body.length === 0) {
+          return response.status(400).json({ error: "Asset upload body must be non-empty binary data." });
+        }
+        const assetId = randomUUID();
+        await assetStore.upload({
+          key: `${request.user.id}/${assetId}`,
+          body: request.body,
+          contentType: request.get("content-type"),
+          filename: filename.trim(),
+        });
+        return response.status(201).json({
+          asset_id: assetId,
+          download_url: `/api/v1/assets/${assetId}`,
+          content_type: request.get("content-type") || "application/octet-stream",
+          size_bytes: request.body.length,
+        });
+      } catch (error) {
+        return next(error);
+      }
+    },
+  );
+
+  app.get(
+    "/api/v1/assets/:assetId",
+    authorization.authenticate,
+    requireAssetStore,
+    async (request, response, next) => {
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(request.params.assetId)) {
+        return response.status(400).json({ error: "assetId must be a UUID." });
+      }
+      try {
+        const asset = await assetStore.download({ key: `${request.user.id}/${request.params.assetId}` });
+        response.type(asset.contentType);
+        response.set("Content-Disposition", `attachment; filename="${asset.filename.replace(/[\\"\r\n]/g, "_")}"`);
+        return response.status(200).send(asset.body);
+      } catch (error) {
+        if (error.code === "ASSET_NOT_FOUND" || error.name === "NoSuchKey" || error.$metadata?.httpStatusCode === 404) {
+          return response.status(404).json({ error: "Asset not found." });
+        }
         return next(error);
       }
     },
