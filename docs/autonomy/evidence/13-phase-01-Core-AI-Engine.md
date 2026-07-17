@@ -14,11 +14,13 @@ local-to-API selection, MOD-023 transcription, and MOD-018 brand consistency.
 - `app/dashboard/app.py` — delivers rendered ads as `/output/...mp4`; adds the
   specified backend catalog and runtime selection endpoints.
 - `app/dashboard/core_ai.py` — assembles 1080p H.264 MP4s, mixes available
-  generated audio, enforces the 60 MB limit, and materializes adapter audio.
+  generated audio without truncating rendered scenes, enforces the 60 MB
+  limit, and materializes adapter audio.
 - `app/dashboard/backends/registry.py` — adds safe per-modality local/API
   switching, catalog state, provider-key-reference handling, and music status.
-- `tests/test_phase_1_core_ai_engine.py` — adds endpoint-level MP4 download and
-  runtime switch tests alongside all Phase 1 gate coverage.
+- `tests/test_phase_1_core_ai_engine.py` — proves the rendered endpoint returns
+  a downloadable 30-second, 1080p H.264 MP4 and proves runtime local/API
+  switching alongside the remaining Phase 1 gates.
 
 ## Commands run with results
 

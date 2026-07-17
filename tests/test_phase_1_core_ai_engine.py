@@ -1,6 +1,7 @@
 """Functional contracts for the Phase 1 Core AI Engine."""
 
 import base64
+import json
 import subprocess
 import sys
 import tempfile
@@ -72,7 +73,10 @@ class PipelineVideo:
         self.counter += 1
         destination = self.root / f"scene-{self.counter}.mp4"
         subprocess.run(
-            ["ffmpeg", "-y", "-f", "lavfi", "-i", "color=c=blue:s=16x16:d=0.15",
+            # The production renderer requests 24 frames at 8fps: each scene
+            # is three seconds.  Keep the end-to-end fixture faithful so this
+            # test verifies a commercial, rather than merely any MP4 file.
+            ["ffmpeg", "-y", "-f", "lavfi", "-i", "color=c=blue:s=16x16:r=8:d=3",
              "-c:v", "libx264", "-pix_fmt", "yuv420p", str(destination)],
             check=True, capture_output=True,
         )
@@ -218,6 +222,16 @@ class CoreAIEngineTest(unittest.TestCase):
             payload = response.get_json()
             self.assertEqual(payload["video_resolution"], "1920x1080")
             self.assertLess(payload["video_size_mb"], 60)
+            output = root / "output" / Path(payload["video_url"]).name
+            probe = subprocess.run(
+                ["ffprobe", "-v", "error", "-show_entries",
+                 "format=duration:stream=codec_name,width,height", "-of", "json", str(output)],
+                check=True, capture_output=True, text=True,
+            )
+            metadata = json.loads(probe.stdout)
+            self.assertAlmostEqual(float(metadata["format"]["duration"]), 30, delta=0.1)
+            video = next(stream for stream in metadata["streams"] if stream["codec_name"] == "h264")
+            self.assertEqual((video["width"], video["height"]), (1920, 1080))
             download = app.test_client().get(payload["video_url"])
             self.assertEqual(download.status_code, 200)
             self.assertEqual(download.mimetype, "video/mp4")

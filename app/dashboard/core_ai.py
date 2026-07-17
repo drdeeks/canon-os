@@ -219,7 +219,7 @@ def assemble_mp4(scene_paths: Iterable[str | Path], output_path: str | Path,
     if audio:
         inputs = "".join(f"[{index}:a]" for index in range(1, len(audio) + 1))
         command.extend(["-filter_complex", f"{inputs}amix=inputs={len(audio)}:duration=longest[a]",
-                        "-map", "0:v", "-map", "[a]", "-shortest"])
+                        "-map", "0:v", "-map", "[a]"])
     else:
         command.extend(["-map", "0:v"])
     command.extend(["-c:v", "copy", "-c:a", "aac", "-movflags", "+faststart", str(output)])
