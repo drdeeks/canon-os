@@ -19,6 +19,11 @@ the prompt and brand palette directly to `/api/v1/studio/generate`, so no
 source image or mask is required for generation. Masked edit controls remain
 separate and continue to require a source image and a non-empty mask.
 
+This repair is now guarded by a UI contract that isolates the `generate()`
+handler and verifies it carries the brand palette while neither reading a
+source file nor serializing a mask. This closes the review gap left by the
+former API-only test.
+
 ## Files changed
 
 - `app/dashboard/app.py` — adds the documented Studio generate, edit, and job
@@ -46,22 +51,24 @@ separate and continue to require a source image and a non-empty mask.
 - `tests/test_phase_1_core_ai_engine.py` — covers Studio generate, approved
   mask-based final restyle, persisted checksum/job lookup, empty-mask
   rejection, final-approval enforcement, the `/studio` UI generate controls
-  and `/api/v1/studio/generate` fetch path, all three canvas mask controls,
+  and `/api/v1/studio/generate` fetch path; verifies the UI generation handler
+  sends the palette without reading a source image or submitting a mask; covers
+  all three canvas mask controls,
   the `/` commercial-builder frontend, local/API backend-selection controls,
   social package endpoint, and social handoff states alongside existing
   Phase-1 gates.
+- `docs/autonomy/evidence/13-phase-01-Core-AI-Engine.md` — records this repair
+  and the validation evidence.
 
 ## Commands run with results
 
 - `.venv/bin/python -m unittest tests/test_phase_1_core_ai_engine.py -v` —
   PASS, 13 tests.
-- `.venv/bin/python scripts/validate_phase_1_gate.py` — PASS.
+- `.venv/bin/python scripts/validate_phase_1_gate.py` — PASS (`OK: Phase 1
+  Core AI Engine gate passed`).
 - `.venv/bin/python -m unittest discover --start-directory tests --pattern 'test_*.py' --verbose`
   — PASS, 23 tests.
-- `.venv/bin/python -m unittest tests/test_dashboard_health.py -v` — PASS.
-- `.venv/bin/python -m py_compile app/dashboard/app.py app/dashboard/core_ai.py app/dashboard/backends/image.py` — PASS.
-- `.venv/bin/python -c "…extract Studio script…" | node --check -` — PASS.
-- `node .agents/skills/impeccable/scripts/detect.mjs --json app/dashboard/templates/workspace.html`
+- `node .agents/skills/impeccable/scripts/detect.mjs --json app/dashboard/templates/workspace.html app/dashboard/templates/studio.html`
   — PASS, no findings (`[]`).
 - `git diff --check` — PASS.
 

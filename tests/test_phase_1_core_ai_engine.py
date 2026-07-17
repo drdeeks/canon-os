@@ -337,7 +337,7 @@ class CoreAIEngineTest(unittest.TestCase):
             self.assertEqual(client.get(f"/api/v1/studio/{job['job_id']}").get_json(), job)
 
     def test_studio_canvas_exposes_brush_lasso_and_full_frame_masks(self):
-        """MOD-021 requires all three canvas mask interactions, not raster fixtures alone."""
+        """MOD-021 exposes independent prompt generation and all mask interactions."""
         response = app.test_client().get("/studio")
         self.assertEqual(response.status_code, 200)
         page = response.get_data(as_text=True)
@@ -345,6 +345,12 @@ class CoreAIEngineTest(unittest.TestCase):
         self.assertIn('id="generate-final"', page)
         self.assertIn("async function generate(final)", page)
         self.assertIn("fetch('/api/v1/studio/generate'", page)
+        self.assertIn("fd.append('brand_palette'", page)
+        generate_body = page.split("async function generate(final)", 1)[1].split(
+            "async function render(final)", 1
+        )[0]
+        self.assertNotIn("source.files", generate_body)
+        self.assertNotIn("fd.append('mask'", generate_body)
         for control in ('id="brush"', 'id="lasso"', 'id="full-frame"', 'id="close-lasso"'):
             self.assertIn(control, page)
         self.assertIn("function closeLasso()", page)
