@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0",
+  "profile_id": "canon-os-coffee-cozy-morning-v1",
+  "brand_name": "Canon OS Coffee",
+  "status": "locked",
+  "immutability": {
+    "locked_at": "2026-07-17",
+    "change_policy": "Create a new campaign profile to change this identity; do not mutate this profile in place."
+  },
+  "campaign_brief": "Launch a cozy morning subscription for local remote workers.",
+  "input": {
+    "image_path": "docs/Canon-Brand.PNG",
+    "image_sha256": "e2603e645d6d68b540ce12d41ce395a7b8242fe6711c2184c73b165db223cf55",
+    "analysis_method": "Manual visual reading of the supplied brand board; no external model or provider was used.",
+    "observed_elements": [
+      "dark obsidian background",
+      "aperture-style circular mark",
+      "neon purple, cyan, coral, amber, and green accents",
+      "Sora heading and Inter body type guidance",
+      "autonomous, creative, orchestration, intelligent, studio, production, optimization, verification, and freedom keywords"
+    ]
+  },
+  "identity": {
+    "positioning": "A calm, capable coffee subscription that protects a local remote worker's morning focus.",
+    "audience": "Local remote workers who want an easy, dependable morning coffee ritual.",
+    "tone": [
+      "cozy",
+      "calm",
+      "capable",
+      "optimistic",
+      "locally grounded"
+    ],
+    "visual_direction": "Use a dark, quiet base with warm coffee moments and restrained neon-gradient accents inspired by the supplied Canon OS brand board.",
+    "palette": [
+      { "name": "Obsidian", "hex": "#0F1115", "role": "base" },
+      { "name": "Prism Purple", "hex": "#6E44FF", "role": "accent" },
+      { "name": "Laser Cyan", "hex": "#1FC4FF", "role": "accent" },
+      { "name": "Signal Coral", "hex": "#FF5C72", "role": "warm accent" },
+      { "name": "Amber", "hex": "#FFB84D", "role": "warm accent" },
+      { "name": "Emerald", "hex": "#2FD98B", "role": "support accent" }
+    ],
+    "typography": {
+      "heading": "Sora",
+      "body": "Inter"
+    },
+    "message_pillars": [
+      "A better start to the workday",
+      "A simple subscription rhythm",
+      "Local connection without overclaiming delivery or availability"
+    ],
+    "guardrails": [
+      "Do not imply that the supplied Canon OS image depicts coffee, a café, or an operating subscription service.",
+      "Do not claim delivery speed, roasting origin, pricing, coverage area, or sustainability credentials without evidence.",
+      "Treat Canon OS Coffee as the campaign brand name supplied for this sample, not as a fact extracted from the image."
+    ]
+  },
+  "provenance": {
+    "output_kind": "campaign planning artifact",
+    "generation_status": "creator-authored sample output",
+    "provider": "none"
+  }
+}

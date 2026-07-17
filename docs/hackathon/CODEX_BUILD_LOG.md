@@ -9,6 +9,20 @@ without a linked commit, test result, or review record.
 
 ## Recorded entries
 
+### 2026-07-17 — Autonomous crew poller and Phase 1 campaign core
+
+- **Decision:** Add a project poller that invokes the actual Codex runtime,
+  instead of only dispatching and validating existing files.
+- **Codex contribution:** The poller generated Phase 1 campaign-core artifacts:
+  immutable brand profile, commercial script, storyboard, and review record.
+- **Evidence:** `docs/hackathon/artifacts/phase-1/brand-profile.json`,
+  `docs/hackathon/artifacts/phase-1/commercial-script.md`,
+  `docs/hackathon/artifacts/phase-1/storyboard.md`, and
+  `docs/hackathon/reviews/phase-1-campaign-core-review.md`.
+- **Status:** PHASE-1 validated, auto-reviewed, and chain-advanced to PHASE-2.
+  The runtime reported `81,633` tokens used, so the crew token ledger now blocks
+  additional runtime execution at the configured hard stop.
+
 ### 2026-07-17 — Phase 0 submission foundation
 
 - **Decision:** Make the judge default a provider-free local launch path, with

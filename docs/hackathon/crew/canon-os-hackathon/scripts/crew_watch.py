@@ -49,6 +49,8 @@ def cycle() -> int:
     self_heal = run([sys.executable, str(CREW_ROOT / "scripts" / "self_heal.py")])
     dispatched = None
     validation = None
+    poller = None
+    validation_after_poller = None
     auto_review = None
     advance = None
     redispatch = None
@@ -56,6 +58,11 @@ def cycle() -> int:
     if self_heal["returncode"] == 0:
         dispatched = run([sys.executable, str(CREW_ROOT / "scripts" / "run_loop.py")])
         validation = run([sys.executable, str(CREW_ROOT / "scripts" / "validate_active_phase.py")])
+        if validation["returncode"] != 0:
+            poller = run([sys.executable, str(CREW_ROOT / "scripts" / "task_poller.py")])
+            validation_after_poller = run([sys.executable, str(CREW_ROOT / "scripts" / "validate_active_phase.py")])
+            if validation_after_poller["returncode"] == 0:
+                validation = validation_after_poller
         if validation["returncode"] == 0 and '"status": "pending_review"' in validation["output"]:
             auto_review = run([sys.executable, str(CREW_ROOT / "scripts" / "auto_review_phase.py")])
             validation = run([sys.executable, str(CREW_ROOT / "scripts" / "validate_active_phase.py")])
@@ -68,6 +75,8 @@ def cycle() -> int:
         status = "blocked_self_heal"
     elif dispatched and dispatched["returncode"] != 0:
         status = "blocked_dispatch"
+    elif poller and poller["returncode"] != 0:
+        status = "blocked_runtime"
     elif validation and validation["returncode"] != 0:
         status = "blocked_validation"
     elif auto_review and auto_review["returncode"] != 0:
@@ -79,6 +88,8 @@ def cycle() -> int:
         "status": status,
         "self_heal": self_heal,
         "dispatch": dispatched,
+        "poller": poller,
+        "validation_after_poller": validation_after_poller,
         "validation": validation,
         "auto_review": auto_review,
         "advance": advance,
