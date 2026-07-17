@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  dashboard-health:
+    name: Dashboard health gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dashboard dependencies
+        run: python -m pip install --requirement app/dashboard/requirements.txt
+
+      - name: Run liveness contract test
+        run: python -m unittest tests/test_dashboard_health.py
+
+      - name: Build dashboard image
+        run: docker build --tag canon-os-dashboard:ci app/dashboard
+
+      - name: Verify container health endpoint
+        run: |
+          docker run --detach --rm --name canon-os-dashboard-ci --publish 5000:5000 canon-os-dashboard:ci
+          trap 'docker logs canon-os-dashboard-ci; docker stop canon-os-dashboard-ci' EXIT
+          for attempt in $(seq 1 30); do
+            if python -c "from urllib.request import urlopen; import sys; sys.exit(0 if urlopen('http://127.0.0.1:5000/health').status == 200 else 1)"; then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1

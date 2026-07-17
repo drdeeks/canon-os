@@ -581,6 +581,12 @@ def api_models_pull():
 # ============================================================================
 # API: Status
 # ============================================================================
+@app.route("/health")
+def health():
+    """Liveness endpoint used by Docker and continuous integration."""
+    return jsonify({"status": "ok"}), 200
+
+
 @app.route("/api/status")
 def api_status():
     """Health check all configured backends via registry."""

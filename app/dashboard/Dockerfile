@@ -1,5 +1,10 @@
 FROM python:3.11-slim
 
+# The container health check uses curl.  Keep the image small while ensuring
+# Docker can evaluate service readiness without application-specific tooling.
+RUN apt-get update && apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN groupadd -g 1000 creator && \
     useradd -u 1000 -g creator -m -s /bin/false creator
 
@@ -22,6 +27,6 @@ ENV STUDIO_MOUNT=/mnt/studio
 EXPOSE 5000
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-    CMD curl -f http://localhost:5000/ || exit 1
+    CMD curl -fsS http://localhost:5000/health || exit 1
 
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--timeout", "120", "app:app"]
