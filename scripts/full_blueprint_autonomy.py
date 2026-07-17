@@ -30,6 +30,8 @@ REVIEW_DIR = ROOT / "docs" / "autonomy" / "reviews"
 VENV_PYTHON = ROOT / ".venv" / "bin" / "python"
 DASHBOARD_REQUIREMENTS = ROOT / "app" / "dashboard" / "requirements.txt"
 MAX_ATTEMPTS = 3
+CHILD_HEARTBEAT_SECONDS = 15
+TERMINATE_GRACE_SECONDS = 10
 
 
 def now() -> str:
@@ -148,7 +150,14 @@ def environment_summary(checks: dict) -> str:
     return "\n".join(lines) if lines else "- no preflight checks recorded"
 
 
-def run_codex(role: str, prompt: str, output_file: Path, timeout: int) -> dict:
+def tail_text(path: Path, limit: int = 8000) -> str:
+    if not path.exists():
+        return ""
+    data = path.read_bytes()
+    return data[-limit:].decode("utf-8", errors="replace")
+
+
+def run_codex(role: str, prompt: str, output_file: Path, timeout: int, heartbeat_payload: dict) -> dict:
     """Run an isolated Codex session; output is retained for watchdog diagnosis."""
     command = [
         "codex", "exec", "--cd", str(ROOT),
@@ -156,22 +165,63 @@ def run_codex(role: str, prompt: str, output_file: Path, timeout: int) -> dict:
         "--output-last-message", str(output_file), prompt,
     ]
     started = now()
+    stdout_log = output_file.with_name(f"{output_file.name}.stdout.log")
+    output_file.parent.mkdir(parents=True, exist_ok=True)
     try:
-        result = subprocess.run(
-            command,
-            cwd=ROOT,
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            timeout=timeout,
-            check=False,
-        )
-        output = result.stdout[-8000:]
-        return {"role": role, "started_at": started, "finished_at": now(), "returncode": result.returncode, "output": output}
-    except subprocess.TimeoutExpired as exc:
-        return {"role": role, "started_at": started, "finished_at": now(), "returncode": 124, "output": (exc.stdout or "")[-8000:], "error": "timeout"}
+        with stdout_log.open("w", encoding="utf-8") as out:
+            process = subprocess.Popen(
+                command,
+                cwd=ROOT,
+                text=True,
+                stdout=out,
+                stderr=subprocess.STDOUT,
+            )
+
+            while process.poll() is None:
+                elapsed = int((datetime.now(timezone.utc) - datetime.fromisoformat(started.replace("Z", "+00:00"))).total_seconds())
+                payload = dict(heartbeat_payload)
+                payload.update({
+                    "status": f"{role}_running",
+                    "heartbeat_at": now(),
+                    "child": {
+                        "role": role,
+                        "pid": process.pid,
+                        "started_at": started,
+                        "elapsed_seconds": elapsed,
+                        "timeout_seconds": timeout,
+                        "stdout_log": str(stdout_log.relative_to(ROOT)),
+                        "last_message": str(output_file.relative_to(ROOT)),
+                    },
+                })
+                write_json(STATUS_FILE, payload)
+                if elapsed >= timeout:
+                    process.terminate()
+                    try:
+                        process.wait(timeout=TERMINATE_GRACE_SECONDS)
+                    except subprocess.TimeoutExpired:
+                        process.kill()
+                        process.wait(timeout=TERMINATE_GRACE_SECONDS)
+                    return {
+                        "role": role,
+                        "started_at": started,
+                        "finished_at": now(),
+                        "returncode": 124,
+                        "output": tail_text(stdout_log),
+                        "stdout_log": str(stdout_log.relative_to(ROOT)),
+                        "error": "timeout",
+                    }
+                time.sleep(CHILD_HEARTBEAT_SECONDS)
+
+        return {
+            "role": role,
+            "started_at": started,
+            "finished_at": now(),
+            "returncode": process.returncode,
+            "output": tail_text(stdout_log),
+            "stdout_log": str(stdout_log.relative_to(ROOT)),
+        }
     except OSError as exc:
-        return {"role": role, "started_at": started, "finished_at": now(), "returncode": 127, "output": "", "error": str(exc)}
+        return {"role": role, "started_at": started, "finished_at": now(), "returncode": 127, "output": tail_text(stdout_log), "stdout_log": str(stdout_log.relative_to(ROOT)), "error": str(exc)}
 
 
 def builder_prompt(step: dict, evidence: Path, preflight: dict) -> str:
@@ -293,14 +343,26 @@ def cycle() -> int:
     needs_builder = not evidence_ready or (review.exists() and not review_passed(review))
     if needs_builder:
         write_json(STATUS_FILE, {"status": "building", **base})
-        builder_result = run_codex("builder", builder_prompt(step, evidence, preflight), RUNTIME / f"builder-{item_slug}.txt", 1800)
+        builder_result = run_codex(
+            "builder",
+            builder_prompt(step, evidence, preflight),
+            RUNTIME / f"builder-{item_slug}.txt",
+            1800,
+            base,
+        )
         if builder_result["returncode"] != 0:
             retries = increment_retry(step)
             write_json(STATUS_FILE, {"status": "builder_failed", "retry_count": retries, "builder": builder_result, **base})
             return 2
 
     write_json(STATUS_FILE, {"status": "reviewing", "builder": builder_result, **base})
-    reviewer_result = run_codex("reviewer", reviewer_prompt(step, evidence, review, preflight), RUNTIME / f"reviewer-{item_slug}.txt", 1200)
+    reviewer_result = run_codex(
+        "reviewer",
+        reviewer_prompt(step, evidence, review, preflight),
+        RUNTIME / f"reviewer-{item_slug}.txt",
+        1200,
+        {"builder": builder_result, **base},
+    )
     if reviewer_result["returncode"] != 0 or not review_passed(review):
         retries = increment_retry(step)
         write_json(STATUS_FILE, {"status": "review_failed", "retry_count": retries, "reviewer": reviewer_result, **base})

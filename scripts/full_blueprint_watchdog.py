@@ -11,6 +11,34 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 STATUS = ROOT / ".agent" / "runtime" / "full-blueprint-watchdog-status.json"
+AUTONOMY_STATUS = ROOT / ".agent" / "runtime" / "full-blueprint-autonomy-status.json"
+STALE_AFTER_SECONDS = 180
+
+
+def read_autonomy_status():
+    if not AUTONOMY_STATUS.exists():
+        return {"ok": False, "reason": "missing autonomy status"}
+    try:
+        payload = json.loads(AUTONOMY_STATUS.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return {"ok": False, "reason": f"invalid autonomy status: {exc}"}
+
+    heartbeat = payload.get("heartbeat_at")
+    if not heartbeat:
+        return {"ok": False, "reason": "missing autonomy heartbeat", "status": payload}
+
+    try:
+        heartbeat_dt = datetime.fromisoformat(heartbeat.replace("Z", "+00:00"))
+    except ValueError as exc:
+        return {"ok": False, "reason": f"invalid autonomy heartbeat: {exc}", "status": payload}
+
+    age = int((datetime.now(timezone.utc) - heartbeat_dt).total_seconds())
+    return {
+        "ok": age <= STALE_AFTER_SECONDS,
+        "heartbeat_age_seconds": age,
+        "stale_after_seconds": STALE_AFTER_SECONDS,
+        "status": payload,
+    }
 
 
 def status_once():
@@ -28,6 +56,8 @@ def status_once():
     except json.JSONDecodeError as exc:
         payload["ok"] = False
         payload["parse_error"] = str(exc)
+    payload["autonomy"] = read_autonomy_status()
+    payload["ok"] = payload["ok"] and payload["autonomy"].get("ok", False)
     STATUS.parent.mkdir(parents=True, exist_ok=True)
     STATUS.write_text(json.dumps(payload, indent=2))
     print(json.dumps(payload, indent=2))
