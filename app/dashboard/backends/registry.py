@@ -8,7 +8,7 @@ import os
 import json
 import logging
 from pathlib import Path
-from typing import Optional, Dict, Any, List
+from typing import Dict, Any
 
 log = logging.getLogger("backends")
 
@@ -80,7 +80,59 @@ class BackendRegistry:
         self._config = config or _load_config()
         self._urls = url_overrides or DEFAULT_URLS
         self._instances: Dict[str, Any] = {}
+        # A configured backend is the safe local default.  API targets are
+        # deliberately separate, so selecting an unavailable API can never
+        # silently route a job to a paid provider.
+        self._local_backends = self._config.get("local_backends", {
+            name: self._config.get(name) for name in DEFAULT_BACKENDS
+        })
+        self._api_backends = self._config.get("api_backends", {})
+        self._provider_key_refs: Dict[str, str] = {}
         log.info(f"Backend config: {self._config}")
+
+    @staticmethod
+    def _canonical_modality(modality: str) -> str:
+        """Map the public audio modality to the TTS adapter slot."""
+        return "tts" if modality == "audio" else modality
+
+    def catalog(self) -> dict:
+        """Return safe per-modality selection state; key values are never exposed."""
+        result = []
+        for modality in ("image", "video", "audio", "text", "stt", "music"):
+            slot = self._canonical_modality(modality)
+            effective = "api" if slot in self._provider_key_refs else "local"
+            result.append({
+                "modality": modality,
+                "effective": effective,
+                "status": "ok",
+                "backend": self._config.get(slot),
+                "api_configured": bool(self._api_backends.get(slot)),
+            })
+        return {"modalities": result}
+
+    def select(self, modality: str, backend: str, provider_key_ref: str | None = None) -> dict:
+        """Switch a stateless modality without restart, retaining only a key reference."""
+        slot = self._canonical_modality(modality)
+        if slot not in DEFAULT_BACKENDS:
+            raise ValueError(f"INVALID_MODALITY: {modality}")
+        if backend not in {"local", "api"}:
+            raise ValueError("INVALID_BACKEND: backend must be local or api")
+        if backend == "api":
+            if not provider_key_ref or not provider_key_ref.strip():
+                raise ValueError(f"KEY_MISSING: Provider key not configured for {modality}. Configure key or use local.")
+            target = self._api_backends.get(slot)
+            if not target:
+                raise ValueError(f"API_UNAVAILABLE: API backend for {modality} unavailable. Local backend remains default.")
+            self._config[slot] = target
+            self._provider_key_refs[slot] = provider_key_ref.strip()
+        else:
+            target = self._local_backends.get(slot)
+            if not target:
+                raise ValueError(f"BACKEND_UNAVAILABLE: Local backend for {modality} is not configured")
+            self._config[slot] = target
+            self._provider_key_refs.pop(slot, None)
+        self._instances.pop(slot, None)
+        return {"effective_backend": backend, "status": "ok"}
 
     def _get(self, backend_type: str):
         """Lazy-load and cache a backend instance."""
@@ -123,7 +175,7 @@ class BackendRegistry:
     def status(self) -> dict:
         """Health check all configured backends."""
         result = {}
-        for btype in ["text", "image", "video", "tts", "stt"]:
+        for btype in ["text", "image", "video", "tts", "stt", "music"]:
             try:
                 backend = self._get(btype)
                 result[btype] = {
@@ -140,7 +192,7 @@ class BackendRegistry:
 
     def list_models(self, backend_type: str = None) -> dict:
         """List available models per backend type."""
-        types = [backend_type] if backend_type else ["text", "image", "video", "tts", "stt"]
+        types = [backend_type] if backend_type else ["text", "image", "video", "tts", "stt", "music"]
         result = {}
         for btype in types:
             try:

@@ -190,8 +190,8 @@ def check_brand_consistency(brand: BrandAnalysis, storyboard: Iterable[dict[str,
 
 
 def assemble_mp4(scene_paths: Iterable[str | Path], output_path: str | Path,
-                 ffmpeg_binary: str = "ffmpeg") -> Path:
-    """Concatenate compatible scene MP4s into a H.264 MP4 with FFmpeg."""
+                 audio_paths: Iterable[str | Path] = (), ffmpeg_binary: str = "ffmpeg") -> Path:
+    """Concatenate local scenes into a 1080p H.264 MP4, mixing supplied audio."""
     paths = [Path(path).resolve() for path in scene_paths]
     if not paths or any(not path.is_file() for path in paths):
         raise CoreAIError("ASSEMBLY_FAILED: every rendered scene must be a local file")
@@ -199,14 +199,60 @@ def assemble_mp4(scene_paths: Iterable[str | Path], output_path: str | Path,
     output.parent.mkdir(parents=True, exist_ok=True)
     manifest = output.with_suffix(".concat.txt")
     manifest.write_text("".join(f"file '{path.as_posix()}'\n" for path in paths), encoding="utf-8")
+    intermediate = output.with_name(f"{output.stem}.video.mp4")
     try:
         completed = subprocess.run(
             [ffmpeg_binary, "-y", "-f", "concat", "-safe", "0", "-i", str(manifest),
-             "-c:v", "libx264", "-pix_fmt", "yuv420p", "-an", str(output)],
+             "-vf", "scale=1920:1080:force_original_aspect_ratio=decrease,"
+                    "pad=1920:1080:(ow-iw)/2:(oh-ih)/2", "-c:v", "libx264",
+             "-pix_fmt", "yuv420p", "-an", str(intermediate)],
             capture_output=True, text=True, check=False,
         )
     finally:
         manifest.unlink(missing_ok=True)
+    if completed.returncode != 0 or not intermediate.is_file() or intermediate.stat().st_size == 0:
+        raise CoreAIError(f"ASSEMBLY_FAILED: {completed.stderr[-500:]}")
+    audio = [Path(path).resolve() for path in audio_paths if Path(path).is_file()]
+    command = [ffmpeg_binary, "-y", "-i", str(intermediate)]
+    for item in audio:
+        command.extend(["-i", str(item)])
+    if audio:
+        inputs = "".join(f"[{index}:a]" for index in range(1, len(audio) + 1))
+        command.extend(["-filter_complex", f"{inputs}amix=inputs={len(audio)}:duration=longest[a]",
+                        "-map", "0:v", "-map", "[a]", "-shortest"])
+    else:
+        command.extend(["-map", "0:v"])
+    command.extend(["-c:v", "copy", "-c:a", "aac", "-movflags", "+faststart", str(output)])
+    try:
+        completed = subprocess.run(command, capture_output=True, text=True, check=False)
+    finally:
+        intermediate.unlink(missing_ok=True)
     if completed.returncode != 0 or not output.is_file() or output.stat().st_size == 0:
         raise CoreAIError(f"ASSEMBLY_FAILED: {completed.stderr[-500:]}")
+    if output.stat().st_size > 60 * 1024 * 1024:
+        output.unlink(missing_ok=True)
+        raise CoreAIError("ASSEMBLY_FAILED: assembled video exceeds 60MB")
     return output
+
+
+def audio_asset_paths(audio: dict[str, Any], output_dir: str | Path, stem: str) -> list[Path]:
+    """Materialize adapter-returned local/base64 audio for FFmpeg assembly."""
+    directory = Path(output_dir)
+    directory.mkdir(parents=True, exist_ok=True)
+    paths: list[Path] = []
+    for label, result in (("voiceover", audio.get("voiceover")), ("music", audio.get("music"))):
+        if not result:
+            continue
+        local = result.get("audio_path")
+        if local and Path(local).is_file():
+            paths.append(Path(local))
+            continue
+        encoded = result.get("audio_base64")
+        if encoded:
+            try:
+                destination = directory / f"{stem}-{label}.{result.get('format', 'wav')}"
+                destination.write_bytes(base64.b64decode(encoded, validate=True))
+                paths.append(destination)
+            except (ValueError, OSError):
+                raise CoreAIError(f"AUDIO_GENERATION_FAILED: {label} audio is invalid")
+    return paths

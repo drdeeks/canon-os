@@ -1,5 +1,7 @@
 """Functional contracts for the Phase 1 Core AI Engine."""
 
+import base64
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -61,6 +63,53 @@ class FakeRegistry:
     image = FakeImage()
 
 
+class PipelineVideo:
+    def __init__(self, root: Path):
+        self.root = root
+        self.counter = 0
+
+    def generate(self, **kwargs):
+        self.counter += 1
+        destination = self.root / f"scene-{self.counter}.mp4"
+        subprocess.run(
+            ["ffmpeg", "-y", "-f", "lavfi", "-i", "color=c=blue:s=16x16:d=0.15",
+             "-c:v", "libx264", "-pix_fmt", "yuv420p", str(destination)],
+            check=True, capture_output=True,
+        )
+        return {"video": str(destination), "provenance": "test fixture"}
+
+
+class PipelineTTS:
+    def __init__(self, root: Path):
+        self.audio = root / "voice.wav"
+        subprocess.run(
+            ["ffmpeg", "-y", "-f", "lavfi", "-i", "sine=frequency=440:duration=2",
+             str(self.audio)], check=True, capture_output=True,
+        )
+
+    def synthesize(self, **kwargs):
+        return {"audio_base64": base64.b64encode(self.audio.read_bytes()).decode(), "format": "wav"}
+
+
+class PipelineMusic:
+    def __init__(self, root: Path):
+        self.audio = root / "music.wav"
+        subprocess.run(
+            ["ffmpeg", "-y", "-f", "lavfi", "-i", "sine=frequency=220:duration=2",
+             str(self.audio)], check=True, capture_output=True,
+        )
+
+    def generate(self, **kwargs):
+        return {"audio_path": str(self.audio), "duration": kwargs["duration_seconds"]}
+
+
+class PipelineRegistry:
+    def __init__(self, root: Path):
+        self.video = PipelineVideo(root)
+        self.tts = PipelineTTS(root)
+        self.music = PipelineMusic(root)
+
+
 class CoreAIEngineTest(unittest.TestCase):
     def create_image(self, directory: Path) -> Path:
         path = directory / "brand.png"
@@ -98,11 +147,17 @@ class CoreAIEngineTest(unittest.TestCase):
         self.assertEqual(inpaint("brand.png", "remove reflection", registry)["images"], ["edited.png"])
 
     def test_backend_registry_supports_local_and_api_provider_selection(self):
-        local = BackendRegistry(config={"text": "demo-text"})
+        local = BackendRegistry(config={
+            "text": "demo-text", "local_backends": {"text": "demo-text"},
+            "api_backends": {"text": "openai"},
+        }, url_overrides={"openai": "https://api.example/v1"})
         self.assertEqual(local.text.__class__.__name__, "DemoTextBackend")
-        api = BackendRegistry(config={"text": "openai"}, url_overrides={"openai": "https://api.example/v1"})
-        self.assertEqual(api.text.__class__.__name__, "OpenAICompatibleBackend")
-        self.assertEqual(api.text.url, "https://api.example/v1")
+        selected = local.select("text", "api", "vault://providers/text")
+        self.assertEqual(selected, {"effective_backend": "api", "status": "ok"})
+        self.assertEqual(local.text.__class__.__name__, "OpenAICompatibleBackend")
+        self.assertEqual(local.text.url, "https://api.example/v1")
+        self.assertNotIn("vault://providers/text", str(local.catalog()))
+        self.assertEqual(local.select("text", "local"), {"effective_backend": "local", "status": "ok"})
 
     def _temporary_image(self) -> Path:
         temporary = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
@@ -141,6 +196,51 @@ class CoreAIEngineTest(unittest.TestCase):
         self.assertEqual(payload["duration_seconds"], 30)
         self.assertEqual(len(payload["storyboard"]), 10)
         self.assertTrue(payload["quality"]["passed"])
+
+    def test_dashboard_render_endpoint_delivers_downloadable_mp4(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            path = self.create_image(root)
+            originals = (dashboard_app.UPLOADS_DIR, dashboard_app.OUTPUT_DIR, dashboard_app.registry)
+            dashboard_app.UPLOADS_DIR = root / "uploads"
+            dashboard_app.OUTPUT_DIR = root / "output"
+            dashboard_app.registry = PipelineRegistry(root)
+            self.addCleanup(setattr, dashboard_app, "UPLOADS_DIR", originals[0])
+            self.addCleanup(setattr, dashboard_app, "OUTPUT_DIR", originals[1])
+            self.addCleanup(setattr, dashboard_app, "registry", originals[2])
+            with path.open("rb") as image:
+                response = app.test_client().post(
+                    "/api/instant-ad",
+                    data={"image": (image, "brand.png"), "render": "true", "music_style": "calm"},
+                    content_type="multipart/form-data",
+                )
+            self.assertEqual(response.status_code, 200, response.get_json())
+            payload = response.get_json()
+            self.assertEqual(payload["video_resolution"], "1920x1080")
+            self.assertLess(payload["video_size_mb"], 60)
+            download = app.test_client().get(payload["video_url"])
+            self.assertEqual(download.status_code, 200)
+            self.assertEqual(download.mimetype, "video/mp4")
+            download.close()
+
+    def test_backend_switch_endpoint_requires_key_reference_and_switches(self):
+        original_registry = dashboard_app.registry
+        dashboard_app.registry = BackendRegistry(config={
+            "text": "demo-text", "local_backends": {"text": "demo-text"},
+            "api_backends": {"text": "openai"},
+        })
+        self.addCleanup(setattr, dashboard_app, "registry", original_registry)
+        client = app.test_client()
+        rejected = client.post("/api/v1/backends/select", json={"modality": "text", "backend": "api"})
+        self.assertEqual(rejected.status_code, 400)
+        selected = client.post("/api/v1/backends/select", json={
+            "modality": "text", "backend": "api", "provider_key_ref": "vault://text-key",
+        })
+        self.assertEqual(selected.get_json(), {"effective_backend": "api", "status": "ok"})
+        catalog = client.get("/api/v1/backends").get_json()
+        text = next(item for item in catalog["modalities"] if item["modality"] == "text")
+        self.assertEqual(text["effective"], "api")
+        self.assertNotIn("vault://text-key", str(catalog))
 
     def test_rejects_taglines_over_two_hundred_characters(self):
         brand = extract_brand(self._temporary_image())

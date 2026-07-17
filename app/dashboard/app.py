@@ -28,6 +28,8 @@ from flask import Flask, render_template, jsonify, request, send_from_directory
 from backends import BackendRegistry
 from core_ai import (
     CoreAIError,
+    assemble_mp4,
+    audio_asset_paths,
     build_storyboard,
     check_brand_consistency,
     extract_brand,
@@ -251,11 +253,47 @@ def instant_ad():
                 script, registry, request.form.get("voice", "neutral"),
                 request.form.get("music_style", "upbeat"),
             )
+            scene_paths = []
+            for rendered in payload["rendered_scenes"]:
+                asset = rendered["asset"]
+                if isinstance(asset, list):
+                    asset = asset[0] if asset else None
+                candidate = Path(asset) if asset else None
+                if candidate and not candidate.is_file():
+                    candidate = STUDIO_MOUNT / "exports" / candidate.name
+                if not candidate or not candidate.is_file():
+                    raise CoreAIError("ASSEMBLY_FAILED: rendered scene is not available as a local video file")
+                scene_paths.append(candidate)
+            OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+            output_name = f"instant-ad-{int(time.time() * 1000)}.mp4"
+            output = assemble_mp4(scene_paths, OUTPUT_DIR / output_name,
+                                  audio_asset_paths(payload["audio"], OUTPUT_DIR, output_name))
+            payload.update({
+                "video_url": f"/output/{output.name}",
+                "video_duration": payload["duration_seconds"],
+                "video_resolution": "1920x1080",
+                "video_size_mb": round(output.stat().st_size / (1024 * 1024), 3),
+            })
         return jsonify(payload), 200
     except CoreAIError as error:
         return jsonify({"error": str(error)}), 400
     except OSError as error:
         return jsonify({"error": f"IMAGE_WRITE_FAILED: {error}"}), 500
+
+
+@app.route("/api/v1/backends", methods=["GET"])
+def backend_catalog():
+    return jsonify(registry.catalog())
+
+
+@app.route("/api/v1/backends/select", methods=["POST"])
+def select_backend():
+    data = request.get_json(silent=True) or {}
+    try:
+        return jsonify(registry.select(data.get("modality", ""), data.get("backend", ""),
+                                       data.get("provider_key_ref")))
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 400
 
 
 @app.route("/api/generate", methods=["POST"])

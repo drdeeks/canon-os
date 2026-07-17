@@ -1,51 +1,39 @@
-# Phase 01 — Core AI Engine: Builder Evidence
+# Evidence — Phase 01 Core AI Engine
 
-requirement: |
-  Blueprint Phase 1 / [PHASE-1-v1], rollback RB-001: implement brand extraction
-  (MOD-001), a 30-second script (MOD-002), an 8–12 scene storyboard (MOD-003),
-  video rendering through local/API adapters (MOD-004), voiceover and music
-  (MOD-005), FFmpeg MP4 assembly (MOD-006), image editing (MOD-021), backend
-  selection (MOD-022), transcription (MOD-023), and brand-consistency checking
-  (MOD-018). The Phase 1 table gates are colors extracted, 30s script, 8–12
-  scenes, scene renders, voiceover+music, MP4 output, canvas renders,
-  local<->API switch, transcript, and brand-consistency.
+## Requirement
 
-files_changed:
-  - app/dashboard/core_ai.py
-  - app/dashboard/app.py
-  - app/dashboard/backends/registry.py
-  - app/dashboard/backends/demo.py
-  - app/dashboard/requirements.txt
-  - config/backends.json
-  - scripts/validate_phase_1_gate.py
-  - tests/test_phase_1_core_ai_engine.py
-  - docs/autonomy/evidence/13-phase-01-Core-AI-Engine.md
+Implement `[PHASE-1-v1]` / `RB-001` in `blueprint.md`: MOD-001 through
+MOD-006 must transform a validated JPG, PNG, or WebP upload and optional
+tagline into brand analysis, a 30-second 8–12 scene script and storyboard,
+rendered scenes, voiceover/music, and a downloadable 1080p H.264 MP4. The
+same phase also gates MOD-021 canvas generation/inpaint, MOD-022 runtime
+local-to-API selection, MOD-023 transcription, and MOD-018 brand consistency.
 
-commands_run:
-  - command: .venv/bin/pip install -r app/dashboard/requirements.txt
-    result: PASS — Pillow 11.1.0 installed; declared dashboard dependencies import.
-  - command: .venv/bin/python -m unittest tests/test_phase_1_core_ai_engine.py -v
-    result: PASS — 6 tests: extracted colours, 30-second/10-scene storyboard,
-      rendered scene manifest, voiceover/music, transcript, FFmpeg MP4, endpoint,
-      and tagline validation.
-  - command: .venv/bin/python -m unittest tests/test_dashboard_health.py -v
-    result: PASS — dashboard health contract passes.
-  - command: npm test --prefix api
-    result: PASS — 20 API tests pass.
-  - command: .venv/bin/python scripts/validate_phase_1_gate.py
-    result: PASS — independent read-only Phase 1 functional gate runner passes.
-  - command: python3 .blueprint-chain/validators/validate_phase1_blueprint.py .blueprint-chain/phase-01-Core-AI-Engine
-    result: PASS — generated phase validator reports Phase 1 validation passed.
-  - command: .venv/bin/python -m compileall -q app/dashboard/core_ai.py app/dashboard/app.py app/dashboard/backends
-    result: PASS — Python compilation succeeds.
-  - command: git diff --check
-    result: PASS — no whitespace errors.
+## Files changed
 
-known_limitations:
-  - Real video, TTS, music, image, and STT output requires a configured local
-    provider or API provider; the functional tests use injected deterministic
-    adapters and exercise FFmpeg with a real generated fixture.
-  - The instant-ad endpoint is flash-first by default. render=true dispatches
-    provider rendering and audio only after the reviewable draft artifacts exist.
+- `app/dashboard/app.py` — delivers rendered ads as `/output/...mp4`; adds the
+  specified backend catalog and runtime selection endpoints.
+- `app/dashboard/core_ai.py` — assembles 1080p H.264 MP4s, mixes available
+  generated audio, enforces the 60 MB limit, and materializes adapter audio.
+- `app/dashboard/backends/registry.py` — adds safe per-modality local/API
+  switching, catalog state, provider-key-reference handling, and music status.
+- `tests/test_phase_1_core_ai_engine.py` — adds endpoint-level MP4 download and
+  runtime switch tests alongside all Phase 1 gate coverage.
+
+## Commands run with results
+
+- `.venv/bin/python -m unittest tests/test_phase_1_core_ai_engine.py -v` —
+  PASS, 8 tests.
+- `.venv/bin/python scripts/validate_phase_1_gate.py` — PASS.
+- `.venv/bin/python -m unittest tests/test_dashboard_health.py -v` — PASS.
+
+## Known limitations
+
+- Production rendering still requires configured local or API adapters to
+  return locally accessible scene media; the endpoint fails explicitly when a
+  scene cannot be assembled rather than fabricating an MP4 or silently falling
+  back to an API.
+- Provider key values are intentionally outside this code path. Runtime
+  selection retains only a non-secret provider-key reference.
 
 builder_status: ready_for_independent_review
