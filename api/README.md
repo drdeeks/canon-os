@@ -69,3 +69,20 @@ GET  /api/v1/assets/:assetId     authenticated download
 
 Assets are stored under an authenticated user's prefix, so another user cannot
 retrieve a known asset ID. Upload returns the asset ID and download path.
+
+## Job queue (RabbitMQ)
+
+Phase 0.8 publishes durable JSON jobs to RabbitMQ. Start the local broker with
+`docker compose up -d rabbitmq`, then run the API with
+`RABBITMQ_URL=amqp://canon:canon-development-secret@127.0.0.1:5672`.
+The publisher declares the durable `canon.jobs` queue and waits for broker
+confirms before returning success.
+
+```text
+POST /api/v1/jobs  authenticated; { job_type, payload, priority? }
+```
+
+The API returns `202` only after RabbitMQ has confirmed the message. Jobs carry
+their UUID, authenticated `user_id`, queue status, retry counters, and enqueue
+timestamp. A missing or unavailable broker returns `503` and no enqueue success
+response.

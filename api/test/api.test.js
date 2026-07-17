@@ -15,14 +15,17 @@ const REFRESH_SECRET = "test-refresh-secret";
 let server;
 let baseUrl;
 let userStore;
+let enqueuedJobs;
 
 test.before(async () => {
   userStore = createInMemoryUserStore();
+  enqueuedJobs = [];
   server = http.createServer(createApp({
     userStore,
     accessTokenSecret: ACCESS_SECRET,
     refreshTokenSecret: REFRESH_SECRET,
     assetStore: createInMemoryAssetStore(),
+    jobQueue: { enqueue: async (job) => enqueuedJobs.push(job) },
   }));
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   baseUrl = `http://127.0.0.1:${server.address().port}`;
@@ -262,4 +265,50 @@ test("asset storage rejects unauthenticated, malformed, and empty uploads", asyn
     body: Buffer.alloc(0),
   });
   assert.equal(empty.status, 400);
+});
+
+test("job queue enqueues an authenticated job with canonical RabbitMQ metadata", async () => {
+  const creator = await registerUser("job-creator@example.com", "Job Creator");
+  const response = await fetch(`${baseUrl}/api/v1/jobs`, {
+    method: "POST",
+    headers: { "content-type": "application/json", ...bearer(creator.access_token) },
+    body: JSON.stringify({
+      job_type: "content.generate",
+      payload: { campaign_id: "campaign-123", modality: "image" },
+      priority: 8,
+    }),
+  });
+
+  assert.equal(response.status, 202);
+  const { job } = await response.json();
+  assert.match(job.id, /^[0-9a-f-]{36}$/);
+  assert.equal(job.status, "pending");
+  assert.equal(job.attempts, 0);
+  assert.equal(job.max_attempts, 3);
+  assert.equal(job.user_id, (await userStore.findByEmail("job-creator@example.com")).id);
+  assert.deepEqual(enqueuedJobs.at(-1), job);
+});
+
+test("job queue rejects unauthenticated and malformed enqueue requests", async () => {
+  const unauthenticated = await fetch(`${baseUrl}/api/v1/jobs`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ job_type: "content.generate", payload: {} }),
+  });
+  assert.equal(unauthenticated.status, 401);
+
+  const creator = await registerUser("invalid-job@example.com", "Invalid Job");
+  const invalidPayload = await fetch(`${baseUrl}/api/v1/jobs`, {
+    method: "POST",
+    headers: { "content-type": "application/json", ...bearer(creator.access_token) },
+    body: JSON.stringify({ job_type: "content.generate", payload: [] }),
+  });
+  assert.equal(invalidPayload.status, 400);
+
+  const invalidPriority = await fetch(`${baseUrl}/api/v1/jobs`, {
+    method: "POST",
+    headers: { "content-type": "application/json", ...bearer(creator.access_token) },
+    body: JSON.stringify({ job_type: "content.generate", payload: {}, priority: 11 }),
+  });
+  assert.equal(invalidPriority.status, 400);
 });

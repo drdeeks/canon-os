@@ -6,6 +6,7 @@ const { createAuthService } = require("./auth/service");
 const { createInMemoryUserStore, createPostgresUserStore } = require("./auth/user-store");
 const { ROLES, ROLE_VALUES, createAuthorization } = require("./auth/authorization");
 const { createS3AssetStore } = require("./storage/asset-store");
+const { createRabbitMqJobQueue } = require("./queue/job-queue");
 const { randomUUID } = require("node:crypto");
 
 const SERVICE_NAME = "canon-os-api";
@@ -38,6 +39,9 @@ function createApp(options = {}) {
   const authorization = createAuthorization({ userStore, accessTokenSecret });
   const assetStore = options.assetStore || (process.env.S3_ENDPOINT
     ? createS3AssetStore()
+    : null);
+  const jobQueue = options.jobQueue || (process.env.RABBITMQ_URL
+    ? createRabbitMqJobQueue()
     : null);
 
   app.disable("x-powered-by");
@@ -87,6 +91,49 @@ function createApp(options = {}) {
         response.status(200).json({ users: await userStore.listUsers() });
       } catch (error) {
         next(error);
+      }
+    },
+  );
+
+  function requireJobQueue(_request, response, next) {
+    if (!jobQueue) {
+      return response.status(503).json({ error: "Job queue is not configured." });
+    }
+    return next();
+  }
+
+  app.post(
+    "/api/v1/jobs",
+    authorization.authenticate,
+    requireJobQueue,
+    async (request, response, next) => {
+      const { job_type: jobType, payload, priority = 0 } = request.body || {};
+      if (typeof jobType !== "string" || jobType.trim() === "" || jobType.length > 100) {
+        return response.status(400).json({ error: "job_type must be a non-empty string up to 100 characters." });
+      }
+      if (payload === null || Array.isArray(payload) || typeof payload !== "object") {
+        return response.status(400).json({ error: "payload must be a JSON object." });
+      }
+      if (!Number.isInteger(priority) || priority < 0 || priority > 10) {
+        return response.status(400).json({ error: "priority must be an integer between 0 and 10." });
+      }
+
+      const job = {
+        id: randomUUID(),
+        job_type: jobType.trim(),
+        payload,
+        priority,
+        user_id: request.user.id,
+        status: "pending",
+        attempts: 0,
+        max_attempts: 3,
+        enqueued_at: new Date().toISOString(),
+      };
+      try {
+        await jobQueue.enqueue(job);
+        return response.status(202).json({ job });
+      } catch (error) {
+        return response.status(503).json({ error: "Unable to enqueue job." });
       }
     },
   );
