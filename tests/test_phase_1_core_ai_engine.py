@@ -306,6 +306,18 @@ class CoreAIEngineTest(unittest.TestCase):
             self.assertEqual(job["checksum"], checksum_asset(saved))
             self.assertEqual(client.get(f"/api/v1/studio/{job['job_id']}").get_json(), job)
 
+    def test_studio_canvas_exposes_brush_lasso_and_full_frame_masks(self):
+        """MOD-021 requires all three canvas mask interactions, not raster fixtures alone."""
+        response = app.test_client().get("/studio")
+        self.assertEqual(response.status_code, 200)
+        page = response.get_data(as_text=True)
+        for control in ('id="brush"', 'id="lasso"', 'id="full-frame"', 'id="close-lasso"'):
+            self.assertIn(control, page)
+        self.assertIn("function closeLasso()", page)
+        self.assertIn("maskCtx.fillRect(0,0,mask.width,mask.height)", page)
+        self.assertIn("maskCtx.arc", page)
+        self.assertIn("fd.append('mask',await new Promise(r=>mask.toBlob(r,'image/png'))", page)
+
     def test_studio_rejects_empty_mask_and_unapproved_final(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

@@ -7,9 +7,9 @@ MOD-001–006 ad pipeline, MOD-021 Image & Photo Studio, MOD-022 backend
 selection, MOD-023 transcription, and MOD-018 brand consistency. The repaired
 MOD-021 gate requires a canvas flow that generates from prompt plus brand
 palette; performs mask-aware inpaint, outpaint, or restyle; uses the selected
-local/API image backend; renders flash before an explicitly approved final;
-and saves a checksum-verified asset. Its Phase-1 validation gate is `canvas
-renders`.
+local/API image backend; supports brush, lasso, and full-frame masking;
+renders flash before an explicitly approved final; and saves a
+checksum-verified asset. Its Phase-1 validation gate is `canvas renders`.
 
 ## Files changed
 
@@ -23,19 +23,23 @@ renders`.
   dispatch.
 - `app/dashboard/backends/demo.py` — keeps the provider-free image adapter
   compatible with the expanded image adapter contract.
-- `app/dashboard/templates/studio.html` — adds the functional brush-mask
-  canvas that calls the versioned Studio API.
+- `app/dashboard/templates/studio.html` — implements separate source, mask,
+  and preview canvases; provides functional brush, lasso (with close action),
+  and full-frame masks; and submits the resulting PNG mask to the versioned
+  Studio API.
 - `tests/test_phase_1_core_ai_engine.py` — covers Studio generate, approved
   mask-based final restyle, persisted checksum/job lookup, empty-mask
-  rejection, and final-approval enforcement alongside existing Phase-1 gates.
+  rejection, final-approval enforcement, and all three canvas mask controls
+  alongside existing Phase-1 gates.
 
 ## Commands run with results
 
 - `.venv/bin/python -m unittest tests/test_phase_1_core_ai_engine.py -v` —
-  PASS, 10 tests.
+  PASS, 11 tests.
 - `.venv/bin/python scripts/validate_phase_1_gate.py` — PASS.
 - `.venv/bin/python -m unittest tests/test_dashboard_health.py -v` — PASS.
 - `.venv/bin/python -m py_compile app/dashboard/app.py app/dashboard/core_ai.py app/dashboard/backends/image.py` — PASS.
+- `.venv/bin/python -c "…extract Studio script…" | node --check -` — PASS.
 - `git diff --check` — PASS.
 
 ## Known limitations
