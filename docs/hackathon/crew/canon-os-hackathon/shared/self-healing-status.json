@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-07-17T07:30:25.985548+00:00",
+  "checked_at": "2026-07-17T08:01:23.817257+00:00",
   "status": "ready",
   "blocked": [],
   "repaired": [],
@@ -22,5 +22,16 @@
       "reviewer": 0,
       "director": 0
     }
+  },
+  "ack": {
+    "workspace": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/crew/canon-os-hackathon/shared",
+    "env_file_exists": true,
+    "constitution_exists": true,
+    "habits_count": 40,
+    "enforcer_config_exists": true,
+    "ack_log_exists": true,
+    "socket_exists": true,
+    "daemon_reachable": true,
+    "socket_error": null
   }
 }
