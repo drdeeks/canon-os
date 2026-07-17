@@ -23,13 +23,16 @@ checksum-verified asset. Its Phase-1 validation gate is `canvas renders`.
   dispatch.
 - `app/dashboard/backends/demo.py` — keeps the provider-free image adapter
   compatible with the expanded image adapter contract.
-- `app/dashboard/templates/studio.html` — implements separate source, mask,
-  and preview canvases; provides functional brush, lasso (with close action),
-  and full-frame masks; and submits the resulting PNG mask to the versioned
-  Studio API.
+- `app/dashboard/templates/studio.html` — exposes a prompt-plus-brand-palette
+  Studio generation path that posts directly to `/api/v1/studio/generate`,
+  plus the separate masked-edit path for `/api/v1/studio/inpaint`; implements
+  separate source, mask, and preview canvases; provides functional brush,
+  lasso (with close action), and full-frame masks; and submits the resulting
+  PNG mask to the versioned Studio API.
 - `tests/test_phase_1_core_ai_engine.py` — covers Studio generate, approved
   mask-based final restyle, persisted checksum/job lookup, empty-mask
-  rejection, final-approval enforcement, and all three canvas mask controls
+  rejection, final-approval enforcement, the `/studio` UI generate controls
+  and `/api/v1/studio/generate` fetch path, and all three canvas mask controls
   alongside existing Phase-1 gates.
 
 ## Commands run with results

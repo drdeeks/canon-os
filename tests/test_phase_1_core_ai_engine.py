@@ -311,6 +311,10 @@ class CoreAIEngineTest(unittest.TestCase):
         response = app.test_client().get("/studio")
         self.assertEqual(response.status_code, 200)
         page = response.get_data(as_text=True)
+        self.assertIn('id="generate-preview"', page)
+        self.assertIn('id="generate-final"', page)
+        self.assertIn("async function generate(final)", page)
+        self.assertIn("fetch('/api/v1/studio/generate'", page)
         for control in ('id="brush"', 'id="lasso"', 'id="full-frame"', 'id="close-lasso"'):
             self.assertIn(control, page)
         self.assertIn("function closeLasso()", page)

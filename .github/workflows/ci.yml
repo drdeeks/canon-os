@@ -8,6 +8,20 @@ permissions:
   contents: read
 
 jobs:
+  blueprint-validation:
+    name: Blueprint validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Validate immutable blueprint
+        run: python utilities/skills/enterprise-blueprint/scripts/validate_blueprint.py blueprint.md
+
   dashboard-health:
     name: Dashboard health gate
     runs-on: ubuntu-latest
@@ -22,8 +36,8 @@ jobs:
       - name: Install dashboard dependencies
         run: python -m pip install --requirement app/dashboard/requirements.txt
 
-      - name: Run liveness contract test
-        run: python -m unittest tests/test_dashboard_health.py
+      - name: Run Phase 0.1 contract tests
+        run: python -m unittest discover --start-directory tests --pattern 'test_*.py'
 
       - name: Build dashboard image
         run: docker build --tag canon-os-dashboard:ci app/dashboard

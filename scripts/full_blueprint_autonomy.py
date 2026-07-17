@@ -34,6 +34,8 @@ DASHBOARD_REQUIREMENTS = ROOT / "app" / "dashboard" / "requirements.txt"
 MAX_ATTEMPTS = 3
 CHILD_HEARTBEAT_SECONDS = 15
 TERMINATE_GRACE_SECONDS = 10
+BUILDER_TIMEOUT_SECONDS = 1200
+REVIEWER_TIMEOUT_SECONDS = 900
 
 
 def now() -> str:
@@ -291,6 +293,11 @@ Read AGENTS.md first, then blueprint.md and checklist-data.json. The blueprint i
 immutable source of truth. Your sole assignment is chain item {step['index']}:
 `{compact_title(step)}`.
 
+Credit budget is tight. Use the smallest production-quality implementation that
+satisfies this exact chain item and its validation gate. Prefer focused contract
+tests and existing architecture over broad rewrites, optional polish, generated
+scaffolding, or speculative future-phase work.
+
 Locate its exact requirement and validation gate in the blueprint. Implement it
 fully in this repository, integrate with existing code rather than replacing
 working functionality, and add or improve automated tests appropriate to the
@@ -327,6 +334,9 @@ Read AGENTS.md, blueprint.md, the active item `{compact_title(step)}`, and
 relevant tests or probes yourself. You must not edit application source, chain
 state, blueprint.md, checklist data, or user-owned assets. You may only create
 or update this review record: `{review.relative_to(ROOT)}`.
+Credit budget is tight. Review only this active chain item. Run the smallest
+set of probes that can prove or disprove the validation gate, then write the
+verdict. Do not perform broad code review of unrelated future phases.
 When Python dashboard checks are relevant, use `{validation_python}`. If it does
 not exist or cannot import declared dependencies, create it with `python3 -m venv
 .venv` and install `{requirements}` into it before running tests.
@@ -405,7 +415,7 @@ def cycle() -> int:
             "builder",
             builder_prompt(step, evidence, review, preflight),
             RUNTIME / f"builder-{item_slug}.txt",
-            1800,
+            BUILDER_TIMEOUT_SECONDS,
             base,
         )
         if builder_result["returncode"] != 0:
@@ -418,7 +428,7 @@ def cycle() -> int:
         "reviewer",
         reviewer_prompt(step, evidence, review, preflight),
         RUNTIME / f"reviewer-{item_slug}.txt",
-        1200,
+        REVIEWER_TIMEOUT_SECONDS,
         {"builder": builder_result, **base},
     )
     if reviewer_result["returncode"] != 0 or not review_passed(review):
