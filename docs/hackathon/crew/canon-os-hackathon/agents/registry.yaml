@@ -1,0 +1,9 @@
+crew_id: canon-os-hackathon
+mode: development
+workspace: shared
+active_agent_limit: 1
+review_rule: builder never approves builder work
+agents:
+  builder: { token_cap: 1700, tier: fast_iteration }
+  reviewer: { token_cap: 500, tier: fast_iteration }
+  director: { token_cap: 300, tier: maximum_reasoning }

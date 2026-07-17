@@ -1,0 +1,14 @@
+{
+  "crew_id": "canon-os-hackathon",
+  "template": "minimal",
+  "created_utc": "2026-07-17T07:21:54.365702Z",
+  "identity_layer": "v1",
+  "agents": [],
+  "blueprints": [],
+  "enforcer_registry": "docs/hackathon/crew/canon-os-hackathon/.enforcer-registry.json",
+  "memory_pipeline": {
+    "daily_retention_days": 14,
+    "weekly_retention_weeks": 12,
+    "shared_knowledge_index": "docs/hackathon/crew/canon-os-hackathon/shared/knowledge-index.json"
+  }
+}

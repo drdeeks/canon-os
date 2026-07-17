@@ -1,0 +1,8 @@
+{
+  "crew_id": "canon-os-hackathon",
+  "agents": [
+    {"id": "builder", "role": "serialized implementation", "phases": ["PHASE-0", "PHASE-1", "PHASE-2", "PHASE-3", "PHASE-4"]},
+    {"id": "reviewer", "role": "independent verification", "phases": ["PHASE-0", "PHASE-1", "PHASE-2", "PHASE-3", "PHASE-4"]},
+    {"id": "director", "role": "final release decision", "phases": ["PHASE-5"]}
+  ]
+}
