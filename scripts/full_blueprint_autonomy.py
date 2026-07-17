@@ -1,0 +1,254 @@
+#!/usr/bin/env python3
+"""Autonomous builder/reviewer loop for the Canon OS full blueprint.
+
+The loop owns one active blueprint-chain item at a time.  A builder Codex
+session implements it, a fresh reviewer Codex session checks it, and only an
+explicit PASS review permits the chain to advance.  It is safe to leave this
+process running: incomplete work remains active and is retried with evidence.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import subprocess
+import sys
+import time
+from datetime import datetime, timezone
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+CHAIN_NAME = "blueprint-Canon-OS"
+CHAIN_FILE = ROOT / ".chain" / f"{CHAIN_NAME}.json"
+RUNTIME = ROOT / ".agent" / "runtime"
+STATUS_FILE = RUNTIME / "full-blueprint-autonomy-status.json"
+RETRY_FILE = RUNTIME / "full-blueprint-autonomy-retries.json"
+EVIDENCE_DIR = ROOT / "docs" / "autonomy" / "evidence"
+REVIEW_DIR = ROOT / "docs" / "autonomy" / "reviews"
+MAX_ATTEMPTS = 3
+
+
+def now() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def write_json(path: Path, payload: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+
+def load_chain() -> dict:
+    return json.loads(CHAIN_FILE.read_text(encoding="utf-8"))
+
+
+def load_retries() -> dict:
+    if not RETRY_FILE.exists():
+        return {}
+    try:
+        return json.loads(RETRY_FILE.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {}
+
+
+def retries_for(step: dict) -> int:
+    return int(load_retries().get(str(step["index"]), 0))
+
+
+def increment_retry(step: dict) -> int:
+    retries = load_retries()
+    key = str(step["index"])
+    retries[key] = int(retries.get(key, 0)) + 1
+    write_json(RETRY_FILE, retries)
+    return retries[key]
+
+
+def clear_retry(step: dict) -> None:
+    retries = load_retries()
+    retries.pop(str(step["index"]), None)
+    write_json(RETRY_FILE, retries)
+
+
+def active_step(chain: dict) -> dict | None:
+    active = [step for step in chain.get("steps", []) if step.get("state") == "active"]
+    if len(active) != 1:
+        return None
+    return active[0]
+
+
+def slug(step: dict) -> str:
+    return f"{step['index']:02d}-{Path(step['path']).name}"
+
+
+def compact_title(step: dict) -> str:
+    return Path(step["path"]).name.replace("-", " ")
+
+
+def run_codex(role: str, prompt: str, output_file: Path, timeout: int) -> dict:
+    """Run an isolated Codex session; output is retained for watchdog diagnosis."""
+    command = [
+        "codex", "exec", "--cd", str(ROOT), "--sandbox", "workspace-write",
+        "--output-last-message", str(output_file), prompt,
+    ]
+    started = now()
+    try:
+        result = subprocess.run(
+            command,
+            cwd=ROOT,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            timeout=timeout,
+            check=False,
+        )
+        output = result.stdout[-8000:]
+        return {"role": role, "started_at": started, "finished_at": now(), "returncode": result.returncode, "output": output}
+    except subprocess.TimeoutExpired as exc:
+        return {"role": role, "started_at": started, "finished_at": now(), "returncode": 124, "output": (exc.stdout or "")[-8000:], "error": "timeout"}
+    except OSError as exc:
+        return {"role": role, "started_at": started, "finished_at": now(), "returncode": 127, "output": "", "error": str(exc)}
+
+
+def builder_prompt(step: dict, evidence: Path) -> str:
+    return f"""You are the autonomous Canon OS builder. Work without asking a human questions.
+
+Read AGENTS.md first, then blueprint.md and checklist-data.json. The blueprint is
+immutable source of truth. Your sole assignment is chain item {step['index']}:
+`{compact_title(step)}`.
+
+Locate its exact requirement and validation gate in the blueprint. Implement it
+fully in this repository, integrate with existing code rather than replacing
+working functionality, and add or improve automated tests appropriate to the
+requirement. Run the relevant checks. Do not alter blueprint.md, checklist data,
+chain state, the user-owned docs/Canon-Brand.PNG, or any constitution file.
+Do not work on later chain items and do not write a review verdict.
+
+Before finishing, write `{evidence.relative_to(ROOT)}` containing: requirement,
+files changed, commands run with results, known limitations, and `builder_status:
+ready_for_independent_review` only when the gate is genuinely met. Commit the
+completed item and its tests with a focused commit. If the gate cannot be met,
+write `builder_status: blocked` with the concrete reason and leave the chain
+unchanged.
+"""
+
+
+def reviewer_prompt(step: dict, evidence: Path, review: Path) -> str:
+    return f"""You are the independent Canon OS reviewer. Work without asking a human.
+
+Read AGENTS.md, blueprint.md, the active item `{compact_title(step)}`, and
+`{evidence.relative_to(ROOT)}`. Inspect the actual implementation and run the
+relevant tests or probes yourself. You must not edit application source, chain
+state, blueprint.md, checklist data, or user-owned assets. You may only create
+or update this review record: `{review.relative_to(ROOT)}`.
+
+Use exactly one final line: `VERDICT: PASS` only if the specified blueprint
+requirement and validation gate are demonstrably satisfied. Otherwise use
+`VERDICT: FAIL` followed by concrete missing evidence or failures. Never pass
+on file presence alone and never claim an external integration was exercised
+unless it actually was.
+"""
+
+
+def review_passed(review: Path) -> bool:
+    if not review.exists():
+        return False
+    return bool(re.search(r"^VERDICT: PASS\s*$", review.read_text(encoding="utf-8", errors="replace"), re.MULTILINE))
+
+
+def complete(step: dict) -> dict:
+    verify = subprocess.run(
+        [sys.executable, "chain.py", "verify", str(ROOT), CHAIN_NAME, step["path"]],
+        cwd=ROOT, text=True, capture_output=True, check=False,
+    )
+    if verify.returncode != 0:
+        return {"ok": False, "stage": "verify", "output": verify.stdout + verify.stderr}
+    payload = json.loads(verify.stdout)
+    if not payload.get("ok"):
+        return {"ok": False, "stage": "verify", "output": payload}
+    finish = subprocess.run(
+        [sys.executable, "chain.py", "complete", str(ROOT), CHAIN_NAME, step["path"]],
+        cwd=ROOT, text=True, capture_output=True, check=False,
+    )
+    if finish.returncode != 0:
+        return {"ok": False, "stage": "complete", "output": finish.stdout + finish.stderr}
+    return {"ok": True, "output": json.loads(finish.stdout)}
+
+
+def cycle() -> int:
+    chain = load_chain()
+    if chain.get("steps") and all(step.get("state") == "complete" for step in chain["steps"]):
+        write_json(STATUS_FILE, {"status": "complete", "heartbeat_at": now(), "steps": len(chain["steps"])})
+        return 0
+
+    step = active_step(chain)
+    if not step:
+        write_json(STATUS_FILE, {"status": "blocked", "heartbeat_at": now(), "reason": "expected exactly one active step"})
+        return 2
+
+    item_slug = slug(step)
+    evidence = EVIDENCE_DIR / f"{item_slug}.md"
+    review = REVIEW_DIR / f"{item_slug}.md"
+    attempts = retries_for(step)
+    base = {"heartbeat_at": now(), "active_step": step, "evidence": str(evidence.relative_to(ROOT)), "review": str(review.relative_to(ROOT))}
+
+    if attempts >= MAX_ATTEMPTS and not review_passed(review):
+        write_json(STATUS_FILE, {"status": "blocked_after_retries", "attempt_limit": MAX_ATTEMPTS, **base})
+        return 2
+
+    builder_result = None
+    evidence_ready = evidence.exists() and "builder_status: ready_for_independent_review" in evidence.read_text(encoding="utf-8", errors="replace")
+    # A failed independent review is actionable feedback for a fresh builder
+    # session; it must not be retried as a review of unchanged code.
+    needs_builder = not evidence_ready or (review.exists() and not review_passed(review))
+    if needs_builder:
+        write_json(STATUS_FILE, {"status": "building", **base})
+        builder_result = run_codex("builder", builder_prompt(step, evidence), RUNTIME / f"builder-{item_slug}.txt", 1800)
+        if builder_result["returncode"] != 0:
+            retries = increment_retry(step)
+            write_json(STATUS_FILE, {"status": "builder_failed", "retry_count": retries, "builder": builder_result, **base})
+            return 2
+
+    write_json(STATUS_FILE, {"status": "reviewing", "builder": builder_result, **base})
+    reviewer_result = run_codex("reviewer", reviewer_prompt(step, evidence, review), RUNTIME / f"reviewer-{item_slug}.txt", 1200)
+    if reviewer_result["returncode"] != 0 or not review_passed(review):
+        retries = increment_retry(step)
+        write_json(STATUS_FILE, {"status": "review_failed", "retry_count": retries, "reviewer": reviewer_result, **base})
+        return 2
+
+    advanced = complete(step)
+    write_json(STATUS_FILE, {"status": "advanced" if advanced["ok"] else "chain_advance_failed", "reviewer": reviewer_result, "advance": advanced, **base})
+    if advanced["ok"]:
+        clear_retry(step)
+    return 0 if advanced["ok"] else 2
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--interval", type=int, default=20)
+    parser.add_argument("--cycles", type=int, default=1, help="0 runs until the chain is complete or blocked")
+    parser.add_argument("--dry-run", action="store_true")
+    args = parser.parse_args()
+    if args.dry_run:
+        chain = load_chain()
+        step = active_step(chain)
+        print(json.dumps({"active": compact_title(step) if step else None, "complete": all(s.get("state") == "complete" for s in chain.get("steps", []))}, indent=2))
+        return 0
+
+    count = 0
+    last = 0
+    while args.cycles == 0 or count < args.cycles:
+        last = cycle()
+        count += 1
+        if args.cycles != 0 and count >= args.cycles:
+            break
+        if args.cycles == 0 and last == 2:
+            # Keep the autonomous watchdog alive while honoring retry limits.
+            time.sleep(max(args.interval, 60))
+            continue
+        time.sleep(args.interval)
+    return last
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
