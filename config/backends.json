@@ -6,7 +6,8 @@
     "image": ["comfyui", "automatic1111"],
     "video": ["comfyui-video", "animatediff"],
     "tts": ["kokoro", "coqui", "bark"],
-    "stt": ["whisper", "faster-whisper"]
+    "stt": ["whisper", "faster-whisper"],
+    "music": ["audiocraft", "stable-audio", "ace-step"]
   },
 
   "backends": {
@@ -14,7 +15,8 @@
     "image": "comfyui",
     "video": "comfyui-video",
     "tts": "kokoro",
-    "stt": "whisper"
+    "stt": "whisper",
+    "music": "audiocraft"
   },
 
   "urls": {
@@ -27,6 +29,7 @@
     "coqui": "http://studio-coqui:5002",
     "bark": "http://studio-bark:5000",
     "whisper": "http://studio-whisper:9000",
-    "faster-whisper": "http://studio-fwhisper:8080"
+    "faster-whisper": "http://studio-fwhisper:8080",
+    "audiocraft": "http://studio-audiocraft:7860"
   }
 }

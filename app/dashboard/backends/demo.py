@@ -92,6 +92,17 @@ class DemoTTSBackend(_DemoBase):
         return ["demo-voice"]
 
 
+@register_backend("demo-music")
+class DemoMusicBackend(_DemoBase):
+    def generate(self, prompt: str, duration_seconds: int = 30, model: str = None,
+                 genre: str = None, mood: str = None, bpm: int = None) -> dict:
+        return {"audio_path": "demo-music-fixture.wav", "duration": duration_seconds,
+                "provenance": "Demo fixture — no provider contacted"}
+
+    def list_models(self) -> List[str]:
+        return ["demo-music-fixture"]
+
+
 @register_backend("demo-stt")
 class DemoSTTBackend(_DemoBase):
     def transcribe(self, audio_base64: str = None, audio_url: str = None,

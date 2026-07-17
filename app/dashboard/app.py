@@ -26,6 +26,15 @@ from pathlib import Path
 from flask import Flask, render_template, jsonify, request, send_from_directory
 
 from backends import BackendRegistry
+from core_ai import (
+    CoreAIError,
+    build_storyboard,
+    check_brand_consistency,
+    extract_brand,
+    generate_audio,
+    generate_script,
+    render_scenes,
+)
 from model_catalog import get_catalog, find_model, MODEL_CATALOG
 
 app = Flask(__name__)
@@ -209,6 +218,46 @@ def projects_page():
 # ============================================================================
 # API: Generation (routes to correct backend by mode)
 # ============================================================================
+@app.route("/api/instant-ad", methods=["POST"])
+def instant_ad():
+    """Create the Phase-1 brand, script, and storyboard artifacts.
+
+    ``render=true`` additionally dispatches the ten scenes and audio to the
+    selected local/API providers.  The default draft path is deliberately
+    flash-first: it produces reviewable artifacts before expensive rendering.
+    """
+    if "image" not in request.files or not request.files["image"].filename:
+        return jsonify({"error": "IMAGE_REQUIRED: provide a JPG, PNG, or WebP image"}), 400
+    image = request.files["image"]
+    filename = f"ad_{int(time.time())}_{Path(image.filename).name}"
+    try:
+        UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+        image_path = UPLOADS_DIR / filename
+        image.save(image_path)
+        brand = extract_brand(image_path, request.form.get("product_type", "product"))
+        script = generate_script(brand, request.form.get("tagline", ""))
+        storyboard = build_storyboard(script, brand)
+        quality = check_brand_consistency(brand, storyboard)
+        payload = {
+            "brand_analysis": brand.to_dict(),
+            "script": [scene.to_dict() for scene in script],
+            "storyboard": storyboard,
+            "quality": quality,
+            "duration_seconds": sum(scene.duration_seconds for scene in script),
+        }
+        if request.form.get("render", "false").lower() == "true":
+            payload["rendered_scenes"] = render_scenes(storyboard, registry, filename)
+            payload["audio"] = generate_audio(
+                script, registry, request.form.get("voice", "neutral"),
+                request.form.get("music_style", "upbeat"),
+            )
+        return jsonify(payload), 200
+    except CoreAIError as error:
+        return jsonify({"error": str(error)}), 400
+    except OSError as error:
+        return jsonify({"error": f"IMAGE_WRITE_FAILED: {error}"}), 500
+
+
 @app.route("/api/generate", methods=["POST"])
 def generate():
     """
@@ -425,7 +474,7 @@ def tts_generate():
         return jsonify({"error": "No text provided"}), 400
 
     tts_backend = registry.tts
-    result = tts_backend.generate(text=text, voice=voice)
+    result = tts_backend.synthesize(text=text, voice=voice)
 
     if "error" in result:
         return jsonify({"error": result["error"]}), 500

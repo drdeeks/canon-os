@@ -21,6 +21,7 @@ DEFAULT_BACKENDS = {
     "video": os.environ.get("VIDEO_BACKEND", "comfyui-video"),
     "tts": os.environ.get("TTS_BACKEND", "kokoro"),
     "stt": os.environ.get("STT_BACKEND", "whisper"),
+    "music": os.environ.get("MUSIC_BACKEND", "audiocraft"),
 }
 
 # Default URLs per backend
@@ -114,6 +115,10 @@ class BackendRegistry:
     @property
     def stt(self):
         return self._get("stt")
+
+    @property
+    def music(self):
+        return self._get("music")
 
     def status(self) -> dict:
         """Health check all configured backends."""
