@@ -6,17 +6,17 @@
     {
       "index": 0,
       "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-00-Foundation",
-      "state": "active",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T09:57:41Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0
+      "verified_at": "2026-07-17T10:01:57Z",
+      "completed_at": "2026-07-17T11:17:53Z",
+      "attempts": 1
     },
     {
       "index": 1,
       "path": "/home/drdeek/projects/canon-os/CanonOS/.blueprint-chain/phase-00-step-01-PHASE-0.1-repo-init,-Dockerfile,-CI",
-      "state": "locked",
+      "state": "active",
       "validator": null,
       "created_at": "2026-07-17T09:57:41Z",
       "verified_at": null,
