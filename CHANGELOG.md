@@ -64,3 +64,17 @@ Impact      : Low
 Testing     : Node HTTP integration tests for health and GraphQL requests
 Rollback    : Revert the API skeleton commit
 ```
+
+## CL-0005 — JWT Registration and Login
+
+```yaml
+Date        : 2026-07-17
+Author      : Canon OS Foundation <foundation@canon-os.local>
+Type        : feature
+Modules     : MOD-014
+Description : Add versioned registration and login endpoints with bcrypt password
+              hashing, JWT access/refresh token issuance, and PostgreSQL users-table support.
+Impact      : Medium
+Testing     : Node HTTP integration tests for registration, login, issued JWTs, and rejection paths
+Rollback    : Revert the JWT authentication commit
+```
