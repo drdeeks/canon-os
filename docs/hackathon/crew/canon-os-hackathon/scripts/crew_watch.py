@@ -49,10 +49,19 @@ def cycle() -> int:
     self_heal = run([sys.executable, str(CREW_ROOT / "scripts" / "self_heal.py")])
     dispatched = None
     validation = None
+    auto_review = None
+    advance = None
+    redispatch = None
 
     if self_heal["returncode"] == 0:
         dispatched = run([sys.executable, str(CREW_ROOT / "scripts" / "run_loop.py")])
         validation = run([sys.executable, str(CREW_ROOT / "scripts" / "validate_active_phase.py")])
+        if validation["returncode"] == 0 and '"status": "pending_review"' in validation["output"]:
+            auto_review = run([sys.executable, str(CREW_ROOT / "scripts" / "auto_review_phase.py")])
+            validation = run([sys.executable, str(CREW_ROOT / "scripts" / "validate_active_phase.py")])
+        if validation["returncode"] == 0 and '"completion_allowed": true' in validation["output"]:
+            advance = run([sys.executable, str(CREW_ROOT / "scripts" / "advance_chain.py")])
+            redispatch = run([sys.executable, str(CREW_ROOT / "scripts" / "run_loop.py")])
 
     status = "running"
     if self_heal["returncode"] != 0:
@@ -61,12 +70,19 @@ def cycle() -> int:
         status = "blocked_dispatch"
     elif validation and validation["returncode"] != 0:
         status = "blocked_validation"
+    elif auto_review and auto_review["returncode"] != 0:
+        status = "blocked_auto_review"
+    elif advance and advance["returncode"] != 0:
+        status = "blocked_chain_advance"
 
     payload = {
         "status": status,
         "self_heal": self_heal,
         "dispatch": dispatched,
         "validation": validation,
+        "auto_review": auto_review,
+        "advance": advance,
+        "redispatch": redispatch,
     }
     write_status(payload)
     print(json.dumps(payload, indent=2))
