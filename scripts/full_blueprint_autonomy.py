@@ -27,6 +27,8 @@ STATUS_FILE = RUNTIME / "full-blueprint-autonomy-status.json"
 RETRY_FILE = RUNTIME / "full-blueprint-autonomy-retries.json"
 EVIDENCE_DIR = ROOT / "docs" / "autonomy" / "evidence"
 REVIEW_DIR = ROOT / "docs" / "autonomy" / "reviews"
+VENV_PYTHON = ROOT / ".venv" / "bin" / "python"
+DASHBOARD_REQUIREMENTS = ROOT / "app" / "dashboard" / "requirements.txt"
 MAX_ATTEMPTS = 3
 
 
@@ -111,6 +113,8 @@ def run_codex(role: str, prompt: str, output_file: Path, timeout: int) -> dict:
 
 
 def builder_prompt(step: dict, evidence: Path) -> str:
+    validation_python = VENV_PYTHON.relative_to(ROOT)
+    requirements = DASHBOARD_REQUIREMENTS.relative_to(ROOT)
     return f"""You are the autonomous Canon OS builder. Work without asking a human questions.
 
 Read AGENTS.md first, then blueprint.md and checklist-data.json. The blueprint is
@@ -123,6 +127,9 @@ working functionality, and add or improve automated tests appropriate to the
 requirement. Run the relevant checks. Do not alter blueprint.md, checklist data,
 chain state, the user-owned docs/Canon-Brand.PNG, or any constitution file.
 Do not work on later chain items and do not write a review verdict.
+When Python dashboard checks are relevant, use `{validation_python}`. If it does
+not exist or cannot import declared dependencies, create it with `python3 -m venv
+.venv` and install `{requirements}` into it before running tests.
 
 Before finishing, write `{evidence.relative_to(ROOT)}` containing: requirement,
 files changed, commands run with results, known limitations, and `builder_status:
@@ -134,6 +141,8 @@ unchanged.
 
 
 def reviewer_prompt(step: dict, evidence: Path, review: Path) -> str:
+    validation_python = VENV_PYTHON.relative_to(ROOT)
+    requirements = DASHBOARD_REQUIREMENTS.relative_to(ROOT)
     return f"""You are the independent Canon OS reviewer. Work without asking a human.
 
 Read AGENTS.md, blueprint.md, the active item `{compact_title(step)}`, and
@@ -141,6 +150,9 @@ Read AGENTS.md, blueprint.md, the active item `{compact_title(step)}`, and
 relevant tests or probes yourself. You must not edit application source, chain
 state, blueprint.md, checklist data, or user-owned assets. You may only create
 or update this review record: `{review.relative_to(ROOT)}`.
+When Python dashboard checks are relevant, use `{validation_python}`. If it does
+not exist or cannot import declared dependencies, create it with `python3 -m venv
+.venv` and install `{requirements}` into it before running tests.
 
 Use exactly one final line: `VERDICT: PASS` only if the specified blueprint
 requirement and validation gate are demonstrably satisfied. Otherwise use

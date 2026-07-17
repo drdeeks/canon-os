@@ -1,6 +1,7 @@
 # ACK shared crew runtime state
 __pycache__/
 *.pyc
+.venv/
 docs/hackathon/crew/canon-os-hackathon/shared/.env
 docs/hackathon/crew/canon-os-hackathon/shared/.agent/*.pid
 docs/hackathon/crew/canon-os-hackathon/shared/.agent/*.sock
