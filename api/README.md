@@ -30,6 +30,22 @@ Registration returns `201` with `{ user_id, access_token, refresh_token }`;
 login returns `200` with `{ access_token, refresh_token }`. Passwords are
 hashed with bcrypt and access/refresh JWTs use separate HS256 signing keys.
 
+## Role-based access control
+
+Phase 0.6 enforces the blueprint's `admin`, `manager`, and `viewer` roles.
+Every access token is verified against the current user record, so a role change
+takes effect on the next protected request rather than waiting for an older JWT
+to expire.
+
+```text
+GET   /api/v1/users/me                 any authenticated role
+GET   /api/v1/users                    admin or manager
+PATCH /api/v1/users/:userId/role       admin only, { role }
+```
+
+Protected routes require `Authorization: Bearer <access_token>`. Refresh tokens
+cannot access them. User-management responses never include password hashes.
+
 Set `DATABASE_URL` to persist users in the existing PostgreSQL `users` table.
 Without it, the server uses an in-memory store suitable only for local
 development and tests. Production requires both `JWT_ACCESS_SECRET` and

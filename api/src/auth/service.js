@@ -35,7 +35,7 @@ function createAuthService({ userStore, accessTokenSecret, refreshTokenSecret })
   }
 
   function issueTokens(user) {
-    const claims = { sub: user.id, email: user.email };
+    const claims = { sub: user.id, email: user.email, role: user.role };
     return {
       access_token: jwt.sign({ ...claims, token_type: "access" }, accessTokenSecret, {
         algorithm: "HS256",

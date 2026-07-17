@@ -126,3 +126,81 @@ test("auth rejects duplicate accounts, invalid credentials, and invalid input", 
   });
   assert.equal(invalidRegistration.status, 400);
 });
+
+async function registerUser(email, name) {
+  const response = await fetch(`${baseUrl}/api/v1/auth/register`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email, password: "a-long-test-password", name }),
+  });
+  assert.equal(response.status, 201);
+  return response.json();
+}
+
+function bearer(token) {
+  return { authorization: `Bearer ${token}` };
+}
+
+test("RBAC enforces viewer, manager, and admin permissions from the current user role", async () => {
+  const viewer = await registerUser("viewer@example.com", "Viewer User");
+  const manager = await registerUser("manager@example.com", "Manager User");
+  const admin = await registerUser("admin@example.com", "Admin User");
+  const viewerRecord = await userStore.findByEmail("viewer@example.com");
+  const managerRecord = await userStore.findByEmail("manager@example.com");
+  const adminRecord = await userStore.findByEmail("admin@example.com");
+  await userStore.updateRole(managerRecord.id, "manager");
+  await userStore.updateRole(adminRecord.id, "admin");
+
+  const unauthenticated = await fetch(`${baseUrl}/api/v1/users`);
+  assert.equal(unauthenticated.status, 401);
+
+  const viewerList = await fetch(`${baseUrl}/api/v1/users`, { headers: bearer(viewer.access_token) });
+  assert.equal(viewerList.status, 403);
+
+  const managerList = await fetch(`${baseUrl}/api/v1/users`, { headers: bearer(manager.access_token) });
+  assert.equal(managerList.status, 200);
+  const managerUsers = (await managerList.json()).users;
+  assert.equal(managerUsers.some((user) => user.email === "viewer@example.com"), true);
+  assert.equal(managerUsers.some((user) => "passwordHash" in user), false);
+
+  const managerRoleChange = await fetch(`${baseUrl}/api/v1/users/${viewerRecord.id}/role`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json", ...bearer(manager.access_token) },
+    body: JSON.stringify({ role: "manager" }),
+  });
+  assert.equal(managerRoleChange.status, 403);
+
+  const adminRoleChange = await fetch(`${baseUrl}/api/v1/users/${viewerRecord.id}/role`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json", ...bearer(admin.access_token) },
+    body: JSON.stringify({ role: "manager" }),
+  });
+  assert.equal(adminRoleChange.status, 200);
+  assert.equal((await adminRoleChange.json()).user.role, "manager");
+
+  const promotedViewerList = await fetch(`${baseUrl}/api/v1/users`, { headers: bearer(viewer.access_token) });
+  assert.equal(promotedViewerList.status, 200, "authorization uses the updated stored role");
+});
+
+test("RBAC rejects refresh tokens, malformed roles, and missing users", async () => {
+  const admin = await registerUser("admin-validation@example.com", "Admin Validation");
+  const adminRecord = await userStore.findByEmail("admin-validation@example.com");
+  await userStore.updateRole(adminRecord.id, "admin");
+
+  const refreshAttempt = await fetch(`${baseUrl}/api/v1/users/me`, { headers: bearer(admin.refresh_token) });
+  assert.equal(refreshAttempt.status, 401);
+
+  const invalidRole = await fetch(`${baseUrl}/api/v1/users/${adminRecord.id}/role`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json", ...bearer(admin.access_token) },
+    body: JSON.stringify({ role: "owner" }),
+  });
+  assert.equal(invalidRole.status, 400);
+
+  const missingUser = await fetch(`${baseUrl}/api/v1/users/38b6efdb-39fe-4b8f-a9e4-0405c65eb400/role`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json", ...bearer(admin.access_token) },
+    body: JSON.stringify({ role: "viewer" }),
+  });
+  assert.equal(missingUser.status, 404);
+});

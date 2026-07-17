@@ -6,6 +6,17 @@ function normalizeEmail(email) {
   return email.trim().toLowerCase();
 }
 
+function publicUser(user) {
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    isActive: user.isActive,
+    lastLoginAt: user.lastLoginAt,
+  };
+}
+
 function createInMemoryUserStore() {
   const usersByEmail = new Map();
 
@@ -34,6 +45,29 @@ function createInMemoryUserStore() {
     async findByEmail(email) {
       const user = usersByEmail.get(normalizeEmail(email));
       return user ? { ...user } : null;
+    },
+
+    async findById(userId) {
+      for (const user of usersByEmail.values()) {
+        if (user.id === userId) {
+          return { ...user };
+        }
+      }
+      return null;
+    },
+
+    async listUsers() {
+      return [...usersByEmail.values()].map((user) => publicUser(user));
+    },
+
+    async updateRole(userId, role) {
+      for (const user of usersByEmail.values()) {
+        if (user.id === userId) {
+          user.role = role;
+          return publicUser(user);
+        }
+      }
+      return null;
     },
 
     async recordLogin(userId) {
@@ -92,6 +126,33 @@ function createPostgresUserStore({ databaseUrl }) {
         [normalizeEmail(email)],
       );
       return toUser(result.rows[0]);
+    },
+
+    async findById(userId) {
+      const result = await pool.query(
+        `SELECT id, email, name, password_hash, role, is_active, last_login_at
+         FROM users WHERE id = $1`,
+        [userId],
+      );
+      return toUser(result.rows[0]);
+    },
+
+    async listUsers() {
+      const result = await pool.query(
+        `SELECT id, email, name, role, is_active, last_login_at
+         FROM users ORDER BY email`,
+      );
+      return result.rows.map((row) => publicUser(toUser(row)));
+    },
+
+    async updateRole(userId, role) {
+      const result = await pool.query(
+        `UPDATE users SET role = $1, updated_at = NOW()
+         WHERE id = $2
+         RETURNING id, email, name, role, is_active, last_login_at`,
+        [role, userId],
+      );
+      return result.rows[0] ? publicUser(toUser(result.rows[0])) : null;
     },
 
     async recordLogin(userId) {

@@ -4,6 +4,7 @@ const express = require("express");
 const { buildSchema, graphql } = require("graphql");
 const { createAuthService } = require("./auth/service");
 const { createInMemoryUserStore, createPostgresUserStore } = require("./auth/user-store");
+const { ROLES, ROLE_VALUES, createAuthorization } = require("./auth/authorization");
 
 const SERVICE_NAME = "canon-os-api";
 const schema = buildSchema(`
@@ -32,6 +33,7 @@ function createApp(options = {}) {
   const refreshTokenSecret = options.refreshTokenSecret || process.env.JWT_REFRESH_SECRET ||
     (isProduction ? null : "development-refresh-secret-not-for-production");
   const auth = createAuthService({ userStore, accessTokenSecret, refreshTokenSecret });
+  const authorization = createAuthorization({ userStore, accessTokenSecret });
 
   app.disable("x-powered-by");
   app.use(express.json({ limit: "1mb" }));
@@ -61,6 +63,49 @@ function createApp(options = {}) {
       });
     }
   });
+
+  app.get("/api/v1/users/me", authorization.authenticate, (request, response) => {
+    response.status(200).json({
+      id: request.user.id,
+      email: request.user.email,
+      name: request.user.name,
+      role: request.user.role,
+    });
+  });
+
+  app.get(
+    "/api/v1/users",
+    authorization.authenticate,
+    authorization.requireRole(ROLES.ADMIN, ROLES.MANAGER),
+    async (_request, response, next) => {
+      try {
+        response.status(200).json({ users: await userStore.listUsers() });
+      } catch (error) {
+        next(error);
+      }
+    },
+  );
+
+  app.patch(
+    "/api/v1/users/:userId/role",
+    authorization.authenticate,
+    authorization.requireRole(ROLES.ADMIN),
+    async (request, response, next) => {
+      try {
+        const { role } = request.body || {};
+        if (typeof role !== "string" || !ROLE_VALUES.includes(role)) {
+          return response.status(400).json({ error: "Role must be one of: admin, manager, viewer." });
+        }
+        const user = await userStore.updateRole(request.params.userId, role);
+        if (!user) {
+          return response.status(404).json({ error: "User not found." });
+        }
+        return response.status(200).json({ user });
+      } catch (error) {
+        return next(error);
+      }
+    },
+  );
 
   app.post("/graphql", async (request, response) => {
     const { query, variables, operationName } = request.body || {};
