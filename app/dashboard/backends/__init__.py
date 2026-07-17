@@ -24,6 +24,7 @@ from .video import VideoBackend
 from .tts import TTSBackend
 from .stt import STTBackend
 from .music import MusicBackend
+from . import demo  # noqa: F401 - registers provider-free demo adapters
 
 __all__ = [
     "BackendRegistry",

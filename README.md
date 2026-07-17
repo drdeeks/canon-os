@@ -90,7 +90,14 @@ Current state: **7 phases · 24 modules · 7 screens**, validator 34/34.
 
 ## Running the studio
 
-See `ai-creative-studio/README.md` for the full guide (setup options, interfaces, InvokeAI, dashboard, workflows). Quick agent/pipeline commands are in `ai-creative-studio/AGENTS.md`.
+This workspace uses the flattened studio layout: the dashboard lives in
+`app/dashboard/`, backend configuration lives in `config/`, and project
+orientation lives in `CANON_OS.md` and `AGENTS.md`.
+
+For the OpenAI Build Week submission foundation, use
+`docs/hackathon/PHASE_0_RUNBOOK.md`. That path launches the existing Flask
+dashboard with `docs/hackathon/provider-free-backends.json`, a provider-free
+demo configuration that needs no secrets or model downloads.
 
 ---
 

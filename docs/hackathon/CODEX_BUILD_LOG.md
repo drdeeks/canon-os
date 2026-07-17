@@ -9,6 +9,23 @@ without a linked commit, test result, or review record.
 
 ## Recorded entries
 
+### 2026-07-17 — Phase 0 submission foundation
+
+- **Decision:** Make the judge default a provider-free local launch path, with
+  deterministic demo backend adapters rather than required API credentials or
+  model downloads.
+- **Codex contribution:** Added the Phase 0 runbook, sample input, provider-free
+  backend config, deterministic `demo-*` dashboard adapters, and a pending
+  phase review record.
+- **GPT-5.6 contribution:** Used through Codex to align the runbook and evidence
+  fields with the hackathon blueprint, standards, and checklist gates.
+- **Evidence:** `docs/hackathon/PHASE_0_RUNBOOK.md`,
+  `docs/hackathon/provider-free-backends.json`,
+  `app/dashboard/backends/demo.py`, and
+  `docs/hackathon/reviews/phase-0-foundation-review.md`.
+- **Status:** PHASE-0.1, PHASE-0.2, and PHASE-0.3 have creator evidence.
+  PHASE-0.4 remains pending independent reviewer verification.
+
 ### 2026-07-16 — Hackathon foundation and design workflow
 
 - **Decision:** Scope the submission to a runnable Work & Productivity vertical

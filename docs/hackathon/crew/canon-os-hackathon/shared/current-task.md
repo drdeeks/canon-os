@@ -1,8 +1,8 @@
 # Current Crew Task
 
-Dispatched: 2026-07-17T08:01:23.841912+00:00
+Dispatched: 2026-07-17T08:19:11.235496+00:00
 Crew: canon-os-hackathon
-Role: builder
+Role: reviewer
 Mode: serialized shared workspace
 Token hard stop: 2250
 

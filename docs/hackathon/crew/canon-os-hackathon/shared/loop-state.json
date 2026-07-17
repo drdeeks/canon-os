@@ -1,7 +1,7 @@
 {
   "status": "running",
-  "started_at": "2026-07-17T08:01:23.841912+00:00",
-  "active_agent": "builder",
+  "started_at": "2026-07-17T08:19:11.235496+00:00",
+  "active_agent": "reviewer",
   "active_step": {
     "index": 0,
     "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-00-Submission-Foundation",

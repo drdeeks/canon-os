@@ -1,0 +1,10 @@
+{
+  "_comment": "OpenAI Build Week provider-free judge configuration. Uses deterministic demo adapters only: no API keys, no model downloads, no external services.",
+  "backends": {
+    "text": "demo-text",
+    "image": "demo-image",
+    "video": "demo-video",
+    "tts": "demo-tts",
+    "stt": "demo-stt"
+  }
+}

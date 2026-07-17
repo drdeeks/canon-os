@@ -22,6 +22,13 @@ CHECKLIST_FILE = HACKATHON_ROOT / "checklist.md"
 CURRENT_TASK = SHARED / "current-task.md"
 RUN_STATE = SHARED / "loop-state.json"
 TOKEN_FILE = SHARED / "token-usage.json"
+PHASE0_REVIEW = HACKATHON_ROOT / "reviews" / "phase-0-foundation-review.md"
+PHASE0_EVIDENCE = [
+    HACKATHON_ROOT / "PHASE_0_RUNBOOK.md",
+    HACKATHON_ROOT / "HACKATHON_STANDARDS.md",
+    HACKATHON_ROOT / "CODEX_BUILD_LOG.md",
+    HACKATHON_ROOT / "provider-free-backends.json",
+]
 
 
 def load_json(path: Path) -> dict:
@@ -49,7 +56,18 @@ def role_for(step: dict) -> str:
         return "reviewer"
     if "director" in title or "phase 05" in title or "phase 5" in title:
         return "director"
+    if "phase 00" in title and phase0_ready_for_review():
+        return "reviewer"
     return "builder"
+
+
+def phase0_ready_for_review() -> bool:
+    if not all(path.exists() for path in PHASE0_EVIDENCE):
+        return False
+    if not PHASE0_REVIEW.exists():
+        return False
+    review = PHASE0_REVIEW.read_text(encoding="utf-8")
+    return "pending independent peer review" in review
 
 
 def run_self_heal() -> int:
