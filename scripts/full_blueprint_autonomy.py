@@ -10,6 +10,7 @@ process running: incomplete work remains active and is retried with evidence.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
@@ -25,6 +26,7 @@ CHAIN_FILE = ROOT / ".chain" / f"{CHAIN_NAME}.json"
 RUNTIME = ROOT / ".agent" / "runtime"
 STATUS_FILE = RUNTIME / "full-blueprint-autonomy-status.json"
 RETRY_FILE = RUNTIME / "full-blueprint-autonomy-retries.json"
+ENV_CACHE_FILE = RUNTIME / "full-blueprint-environment-cache.json"
 EVIDENCE_DIR = ROOT / "docs" / "autonomy" / "evidence"
 REVIEW_DIR = ROOT / "docs" / "autonomy" / "reviews"
 VENV_PYTHON = ROOT / ".venv" / "bin" / "python"
@@ -52,6 +54,15 @@ def load_retries() -> dict:
         return {}
     try:
         return json.loads(RETRY_FILE.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {}
+
+
+def load_env_cache() -> dict:
+    if not ENV_CACHE_FILE.exists():
+        return {}
+    try:
+        return json.loads(ENV_CACHE_FILE.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
         return {}
 
@@ -89,6 +100,12 @@ def compact_title(step: dict) -> str:
     return Path(step["path"]).name.replace("-", " ")
 
 
+def file_sha256(path: Path) -> str:
+    if not path.exists():
+        return ""
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 def run_local(command: list[str], timeout: int = 120) -> dict:
     started = now()
     try:
@@ -123,21 +140,53 @@ def provision_environment() -> dict:
     """Provision validation tools the builder/reviewer need before delegation."""
     RUNTIME.mkdir(parents=True, exist_ok=True)
     checks: dict[str, dict] = {}
+    cache = load_env_cache()
 
     if not VENV_PYTHON.exists():
         checks["venv_create"] = run_local([sys.executable, "-m", "venv", str(ROOT / ".venv")], timeout=180)
 
     if VENV_PYTHON.exists() and DASHBOARD_REQUIREMENTS.exists():
-        checks["dashboard_requirements"] = run_local(
-            [str(VENV_PYTHON), "-m", "pip", "install", "--requirement", str(DASHBOARD_REQUIREMENTS)],
-            timeout=300,
-        )
+        requirements_hash = file_sha256(DASHBOARD_REQUIREMENTS)
+        if cache.get("dashboard_requirements_hash") == requirements_hash:
+            checks["dashboard_requirements"] = {
+                "command": [str(VENV_PYTHON), "-m", "pip", "install", "--requirement", str(DASHBOARD_REQUIREMENTS)],
+                "started_at": now(),
+                "finished_at": now(),
+                "returncode": 0,
+                "output": "cached: requirements unchanged",
+            }
+        else:
+            checks["dashboard_requirements"] = run_local(
+                [str(VENV_PYTHON), "-m", "pip", "install", "--requirement", str(DASHBOARD_REQUIREMENTS)],
+                timeout=300,
+            )
+            if checks["dashboard_requirements"]["returncode"] == 0:
+                cache["dashboard_requirements_hash"] = requirements_hash
         checks["dashboard_health_test"] = run_local(
             [str(VENV_PYTHON), "-m", "unittest", "-v", "tests/test_dashboard_health.py"],
             timeout=120,
         )
 
-    checks["docker"] = run_local(["docker", "version", "--format", "{{.Server.Version}}"], timeout=30)
+    docker_cache_age = 0
+    if cache.get("docker_checked_at"):
+        try:
+            docker_cache_age = int((datetime.now(timezone.utc) - datetime.fromisoformat(cache["docker_checked_at"].replace("Z", "+00:00"))).total_seconds())
+        except ValueError:
+            docker_cache_age = 999999
+    if cache.get("docker_returncode") == 0 and docker_cache_age < 300:
+        checks["docker"] = {
+            "command": ["docker", "version", "--format", "{{.Server.Version}}"],
+            "started_at": now(),
+            "finished_at": now(),
+            "returncode": 0,
+            "output": cache.get("docker_output", "cached"),
+        }
+    else:
+        checks["docker"] = run_local(["docker", "version", "--format", "{{.Server.Version}}"], timeout=30)
+        cache["docker_checked_at"] = now()
+        cache["docker_returncode"] = checks["docker"].get("returncode")
+        cache["docker_output"] = checks["docker"].get("output", "")
+    write_json(ENV_CACHE_FILE, cache)
     write_json(RUNTIME / "full-blueprint-environment.json", {"timestamp": now(), "checks": checks})
     return checks
 
@@ -224,10 +273,18 @@ def run_codex(role: str, prompt: str, output_file: Path, timeout: int, heartbeat
         return {"role": role, "started_at": started, "finished_at": now(), "returncode": 127, "output": tail_text(stdout_log), "stdout_log": str(stdout_log.relative_to(ROOT)), "error": str(exc)}
 
 
-def builder_prompt(step: dict, evidence: Path, preflight: dict) -> str:
+def builder_prompt(step: dict, evidence: Path, review: Path, preflight: dict) -> str:
     validation_python = VENV_PYTHON.relative_to(ROOT)
     requirements = DASHBOARD_REQUIREMENTS.relative_to(ROOT)
     preflight_text = environment_summary(preflight)
+    review_feedback = ""
+    if review.exists() and not review_passed(review):
+        review_feedback = f"""
+
+Previous independent review failed. Read `{review.relative_to(ROOT)}` first and
+fix those exact blocking findings before doing anything else. Do not rewrite
+unrelated working code or broaden scope while repairing a failed review.
+"""
     return f"""You are the autonomous Canon OS builder. Work without asking a human questions.
 
 Read AGENTS.md first, then blueprint.md and checklist-data.json. The blueprint is
@@ -248,6 +305,7 @@ The supervisor already ran this environment preflight:
 You may use Docker, git commit, package installers, and local servers as needed
 to satisfy and verify the active blueprint item. Keep all durable project
 changes inside this repository, except normal package caches.
+{review_feedback}
 
 Before finishing, write `{evidence.relative_to(ROOT)}` containing: requirement,
 files changed, commands run with results, known limitations, and `builder_status:
@@ -345,7 +403,7 @@ def cycle() -> int:
         write_json(STATUS_FILE, {"status": "building", **base})
         builder_result = run_codex(
             "builder",
-            builder_prompt(step, evidence, preflight),
+            builder_prompt(step, evidence, review, preflight),
             RUNTIME / f"builder-{item_slug}.txt",
             1800,
             base,
