@@ -78,3 +78,17 @@ Impact      : Medium
 Testing     : Node HTTP integration tests for registration, login, issued JWTs, and rejection paths
 Rollback    : Revert the JWT authentication commit
 ```
+
+## CL-0006 — Structured API Request Logging
+
+```yaml
+Date        : 2026-07-17
+Author      : Canon OS Foundation <foundation@canon-os.local>
+Type        : feature
+Modules     : MOD-015
+Description : Add JSON structured logging for completed API requests, including
+              request correlation IDs, response status, duration, and authenticated user IDs.
+Impact      : Low
+Testing     : Node unit and HTTP integration tests parse emitted JSON records and verify correlation IDs
+Rollback    : Set CANON_OS_OBSERVABILITY=false or revert the logging commit
+```

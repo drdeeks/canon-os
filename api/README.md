@@ -86,3 +86,17 @@ The API returns `202` only after RabbitMQ has confirmed the message. Jobs carry
 their UUID, authenticated `user_id`, queue status, retry counters, and enqueue
 timestamp. A missing or unavailable broker returns `503` and no enqueue success
 response.
+
+## Structured logging
+
+Phase 0.9 emits one JSON log record for every completed HTTP response. Each
+record includes `timestamp`, `level`, `service`, `event`, `request_id`, method,
+path, status, and duration; authenticated requests also include `user_id`.
+Query strings and request bodies are intentionally excluded to avoid logging
+credentials or payload data. The request ID is returned in `X-Request-ID`; a
+safe caller-supplied `X-Request-ID` is preserved, otherwise the API creates a
+UUID.
+
+Set `LOG_LEVEL=debug|info|warn|error` to control the minimum emitted level
+(default: `info`). Set `CANON_OS_OBSERVABILITY=false` only for local debugging
+or a controlled rollback; structured request logging is enabled by default.

@@ -7,6 +7,8 @@ const { createInMemoryUserStore, createPostgresUserStore } = require("./auth/use
 const { ROLES, ROLE_VALUES, createAuthorization } = require("./auth/authorization");
 const { createS3AssetStore } = require("./storage/asset-store");
 const { createRabbitMqJobQueue } = require("./queue/job-queue");
+const { createLogger } = require("./observability/logger");
+const { createHttpLoggingMiddleware } = require("./observability/http-logging");
 const { randomUUID } = require("node:crypto");
 
 const SERVICE_NAME = "canon-os-api";
@@ -27,6 +29,8 @@ const rootValue = {
 
 function createApp(options = {}) {
   const app = express();
+  const logger = options.logger || createLogger();
+  const observabilityEnabled = options.observabilityEnabled ?? process.env.CANON_OS_OBSERVABILITY !== "false";
   const userStore = options.userStore || (process.env.DATABASE_URL
     ? createPostgresUserStore({ databaseUrl: process.env.DATABASE_URL })
     : createInMemoryUserStore());
@@ -45,6 +49,12 @@ function createApp(options = {}) {
     : null);
 
   app.disable("x-powered-by");
+  app.use(createHttpLoggingMiddleware({
+    logger,
+    enabled: observabilityEnabled,
+    requestIdFactory: options.requestIdFactory,
+    now: options.loggingNow,
+  }));
   app.use(express.json({ limit: "1mb" }));
 
   app.get("/health", (_request, response) => {
