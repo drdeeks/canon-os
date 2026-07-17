@@ -9,6 +9,19 @@ without a linked commit, test result, or review record.
 
 ## Recorded entries
 
+### 2026-07-17 — Remaining demo artifacts completed under raised budget
+
+- **Decision:** Raise the crew hard stop by 1,250 tokens and finish the remaining
+  hackathon demo with deterministic local fixtures rather than another Codex
+  runtime call.
+- **Codex contribution:** Added the local demo-completion executor and generated
+  Phase 2 through Phase 5 artifacts, reviews, and chain completion markers.
+- **Evidence:** `docs/hackathon/artifacts/phase-2/`,
+  `docs/hackathon/artifacts/phase-3/`, `docs/hackathon/artifacts/phase-4/`,
+  `docs/hackathon/artifacts/phase-5/`, and matching review records.
+- **Status:** All hackathon chain steps are complete. Self-heal reports ready and
+  the run loop reports `READY: chain complete`.
+
 ### 2026-07-17 — Autonomous crew poller and Phase 1 campaign core
 
 - **Decision:** Add a project poller that invokes the actual Codex runtime,

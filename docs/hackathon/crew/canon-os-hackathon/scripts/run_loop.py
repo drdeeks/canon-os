@@ -93,7 +93,23 @@ def dispatch_once() -> int:
         print("BLOCKED: token hard stop reached")
         return 2
 
-    active = [step for step in chain["steps"] if step.get("state") == "active"][0]
+    active_steps = [step for step in chain["steps"] if step.get("state") == "active"]
+    if not active_steps:
+        if all(step.get("state") == "complete" for step in chain["steps"]):
+            state = {
+                "status": "complete",
+                "completed_at": datetime.now(timezone.utc).isoformat(),
+                "active_agent": None,
+                "active_step": None,
+                "token_usage": tokens,
+            }
+            write_json(RUN_STATE, state)
+            print("READY: chain complete")
+            return 0
+        print("BLOCKED: no active chain step")
+        return 2
+
+    active = active_steps[0]
     role = role_for(active)
     now = datetime.now(timezone.utc).isoformat()
     title = task_title(active)

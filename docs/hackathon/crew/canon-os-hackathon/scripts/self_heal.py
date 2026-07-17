@@ -128,7 +128,8 @@ def main() -> int:
 
     chain = load_json(CHAIN_FILE, {"steps": []})
     active_steps = [step for step in chain.get("steps", []) if step.get("state") == "active"]
-    if len(active_steps) != 1:
+    chain_complete = bool(chain.get("steps")) and all(step.get("state") == "complete" for step in chain.get("steps", []))
+    if len(active_steps) != 1 and not chain_complete:
         blocked.append(f"expected exactly one active chain step, found {len(active_steps)}")
 
     ack = ack_health()
@@ -153,6 +154,7 @@ def main() -> int:
         "blocked": blocked,
         "repaired": repaired,
         "active_step": active_steps[0] if len(active_steps) == 1 else None,
+        "chain_complete": chain_complete,
         "token_usage": tokens,
         "ack": ack,
     }

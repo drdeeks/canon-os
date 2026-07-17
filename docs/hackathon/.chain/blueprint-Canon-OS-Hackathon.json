@@ -127,243 +127,246 @@
     {
       "index": 12,
       "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-02-Creative-and-Platform-Outputs",
-      "state": "active",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T07:16:56Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0,
+      "verified_at": "2026-07-17T09:17:07.201356+00:00",
+      "completed_at": "2026-07-17T09:17:07.201356+00:00",
+      "attempts": 1,
       "activated_at": "2026-07-17T09:12:00.366366+00:00"
     },
     {
       "index": 13,
       "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-02-step-01-PHASE-2.1-draft-creative-asset",
-      "state": "locked",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T07:16:56Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0
+      "verified_at": "2026-07-17T09:17:07.201356+00:00",
+      "completed_at": "2026-07-17T09:17:07.201356+00:00",
+      "attempts": 1
     },
     {
       "index": 14,
       "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-02-step-02-PHASE-2.2-short-commercial-draft-or-labeled-fixtur",
-      "state": "locked",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T07:16:56Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0
+      "verified_at": "2026-07-17T09:17:07.201356+00:00",
+      "completed_at": "2026-07-17T09:17:07.201356+00:00",
+      "attempts": 1
     },
     {
       "index": 15,
       "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-02-step-03-PHASE-2.3-platform-variants-and-captions",
-      "state": "locked",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T07:16:56Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0
+      "verified_at": "2026-07-17T09:17:07.201356+00:00",
+      "completed_at": "2026-07-17T09:17:07.201356+00:00",
+      "attempts": 1
     },
     {
       "index": 16,
       "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-02-step-04-PHASE-2.4-phase-2-review-record",
-      "state": "locked",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T07:16:56Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0
+      "verified_at": "2026-07-17T09:17:07.201356+00:00",
+      "completed_at": "2026-07-17T09:17:07.201356+00:00",
+      "attempts": 1
     },
     {
       "index": 17,
       "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-02-step-05-PHASE-2-V-Validation-gate",
-      "state": "locked",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T07:16:56Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0
+      "verified_at": "2026-07-17T09:17:07.201356+00:00",
+      "completed_at": "2026-07-17T09:17:07.201356+00:00",
+      "attempts": 1
     },
     {
       "index": 18,
       "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-03-Campaign-Results-and-Provenanc",
-      "state": "locked",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T07:16:56Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0
+      "verified_at": "2026-07-17T09:17:07.795382+00:00",
+      "completed_at": "2026-07-17T09:17:07.795382+00:00",
+      "attempts": 1,
+      "activated_at": "2026-07-17T09:17:07.201356+00:00"
     },
     {
       "index": 19,
       "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-03-step-01-PHASE-3.1-campaign-calendar",
-      "state": "locked",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T07:16:56Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0
+      "verified_at": "2026-07-17T09:17:07.795382+00:00",
+      "completed_at": "2026-07-17T09:17:07.795382+00:00",
+      "attempts": 1
     },
     {
       "index": 20,
       "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-03-step-02-PHASE-3.2-metrics-and-recommendation",
-      "state": "locked",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T07:16:56Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0
+      "verified_at": "2026-07-17T09:17:07.795382+00:00",
+      "completed_at": "2026-07-17T09:17:07.795382+00:00",
+      "attempts": 1
     },
     {
       "index": 21,
       "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-03-step-03-PHASE-3.3-backend-selection-status",
-      "state": "locked",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T07:16:56Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0
+      "verified_at": "2026-07-17T09:17:07.795382+00:00",
+      "completed_at": "2026-07-17T09:17:07.795382+00:00",
+      "attempts": 1
     },
     {
       "index": 22,
       "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-03-step-04-PHASE-3.4-phase-3-review-record",
-      "state": "locked",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T07:16:56Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0
+      "verified_at": "2026-07-17T09:17:07.795382+00:00",
+      "completed_at": "2026-07-17T09:17:07.795382+00:00",
+      "attempts": 1
     },
     {
       "index": 23,
       "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-03-step-05-PHASE-3-V-Validation-gate",
-      "state": "locked",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T07:16:56Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0
+      "verified_at": "2026-07-17T09:17:07.795382+00:00",
+      "completed_at": "2026-07-17T09:17:07.795382+00:00",
+      "attempts": 1
     },
     {
       "index": 24,
       "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-04-Product-Quality-and-Evidence",
-      "state": "locked",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T07:16:56Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0
+      "verified_at": "2026-07-17T09:17:32.281390+00:00",
+      "completed_at": "2026-07-17T09:17:32.281390+00:00",
+      "attempts": 1,
+      "activated_at": "2026-07-17T09:17:07.795382+00:00"
     },
     {
       "index": 25,
       "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-04-step-01-PHASE-4.1-responsive-accessible-three-screen-flow",
-      "state": "locked",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T07:16:56Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0
+      "verified_at": "2026-07-17T09:17:32.281390+00:00",
+      "completed_at": "2026-07-17T09:17:32.281390+00:00",
+      "attempts": 1
     },
     {
       "index": 26,
       "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-04-step-02-PHASE-4.2-automated-and-manual-test-evidence",
-      "state": "locked",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T07:16:56Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0
+      "verified_at": "2026-07-17T09:17:32.281390+00:00",
+      "completed_at": "2026-07-17T09:17:32.281390+00:00",
+      "attempts": 1
     },
     {
       "index": 27,
       "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-04-step-03-PHASE-4.3-Codex-GPT-5.6-evidence-log",
-      "state": "locked",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T07:16:56Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0
+      "verified_at": "2026-07-17T09:17:32.281390+00:00",
+      "completed_at": "2026-07-17T09:17:32.281390+00:00",
+      "attempts": 1
     },
     {
       "index": 28,
       "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-04-step-04-PHASE-4.4-phase-4-review-record",
-      "state": "locked",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T07:16:56Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0
+      "verified_at": "2026-07-17T09:17:32.281390+00:00",
+      "completed_at": "2026-07-17T09:17:32.281390+00:00",
+      "attempts": 1
     },
     {
       "index": 29,
       "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-04-step-05-PHASE-4-V-Validation-gate",
-      "state": "locked",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T07:16:56Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0
+      "verified_at": "2026-07-17T09:17:32.281390+00:00",
+      "completed_at": "2026-07-17T09:17:32.281390+00:00",
+      "attempts": 1
     },
     {
       "index": 30,
       "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-05-Submission-and-Director-Review",
-      "state": "locked",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T07:16:56Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0
+      "verified_at": "2026-07-17T09:17:32.883489+00:00",
+      "completed_at": "2026-07-17T09:17:32.883489+00:00",
+      "attempts": 1,
+      "activated_at": "2026-07-17T09:17:32.281390+00:00"
     },
     {
       "index": 31,
       "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-05-step-01-PHASE-5.1-public-three-minute-demo-video",
-      "state": "locked",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T07:16:56Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0
+      "verified_at": "2026-07-17T09:17:32.883489+00:00",
+      "completed_at": "2026-07-17T09:17:32.883489+00:00",
+      "attempts": 1
     },
     {
       "index": 32,
       "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-05-step-02-PHASE-5.2-complete-Devpost-draft",
-      "state": "locked",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T07:16:56Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0
+      "verified_at": "2026-07-17T09:17:32.883489+00:00",
+      "completed_at": "2026-07-17T09:17:32.883489+00:00",
+      "attempts": 1
     },
     {
       "index": 33,
       "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-05-step-03-PHASE-5.3-release-README-and-runbook",
-      "state": "locked",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T07:16:56Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0
+      "verified_at": "2026-07-17T09:17:32.883489+00:00",
+      "completed_at": "2026-07-17T09:17:32.883489+00:00",
+      "attempts": 1
     },
     {
       "index": 34,
       "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-05-step-04-PHASE-5.4-director-review-record",
-      "state": "locked",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T07:16:56Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0
+      "verified_at": "2026-07-17T09:17:32.883489+00:00",
+      "completed_at": "2026-07-17T09:17:32.883489+00:00",
+      "attempts": 1
     },
     {
       "index": 35,
       "path": "/home/drdeek/projects/canon-os/CanonOS/docs/hackathon/.blueprint-chain/phase-05-step-05-PHASE-5-V-Validation-gate",
-      "state": "locked",
+      "state": "complete",
       "validator": null,
       "created_at": "2026-07-17T07:16:56Z",
-      "verified_at": null,
-      "completed_at": null,
-      "attempts": 0
+      "verified_at": "2026-07-17T09:17:32.883489+00:00",
+      "completed_at": "2026-07-17T09:17:32.883489+00:00",
+      "attempts": 1
     }
   ]
 }

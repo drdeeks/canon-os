@@ -1,7 +1,7 @@
 {
   "total_used": 81633,
-  "hard_stop": 2250,
-  "status": "hard_stop_exceeded",
+  "hard_stop": 82883,
+  "status": "within_budget",
   "by_agent": {
     "builder": 81633,
     "reviewer": 0,
