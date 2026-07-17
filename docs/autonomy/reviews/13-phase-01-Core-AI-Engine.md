@@ -28,7 +28,7 @@ user asset was modified.
   paths and rejection of missing and mismatched previews. Saved Studio assets
   are locally persisted and SHA-256-checked.
 - The dashboard/commercial and routing changes preserve
-  `docs/autonomy/DEMO_VERTICAL_SLICE.md`: the focused dashboard contract passed
+  `docs/autonomy/PRODUCT_VERTICAL_SLICE.md`: the focused dashboard contract passed
   for the root commercial builder, upload, local/API selectors, draft/final
   commercial flow, and social package. Social output is correctly
   `draft_ready` / `ready_to_connect`; no live publisher was claimed or

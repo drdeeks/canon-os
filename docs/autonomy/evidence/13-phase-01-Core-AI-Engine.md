@@ -29,18 +29,22 @@ finishes and sends that preview job id with the final request.
 - `app/dashboard/templates/studio.html` — disables final actions until a flash
   result exists and supplies its job id to the final request.
 - `tests/test_phase_1_core_ai_engine.py` — verifies valid generate/edit
-  preview-to-final flows and rejects both missing and mismatched previews.
+  preview-to-final flows, rejects both missing and mismatched previews, and
+  proves the offline fallback path renders a downloadable commercial MP4.
+- `app/dashboard/backends/demo.py` — offline fallback video, voice, and music
+  adapters materialize real local media assets instead of fake filenames, so
+  the commercial pipeline remains runnable without configured providers.
 - `docs/autonomy/evidence/13-phase-01-Core-AI-Engine.md` — records this repair
   and validation evidence.
 
 ## Commands run with results
 
 - `.venv/bin/python -m unittest tests/test_phase_1_core_ai_engine.py -v` —
-  PASS, 13 tests.
+  PASS, 14 tests.
 - `.venv/bin/python scripts/validate_phase_1_gate.py` — PASS (`OK: Phase 1
   Core AI Engine gate passed`).
 - `.venv/bin/python -m unittest discover --start-directory tests --pattern 'test_*.py' --verbose`
-  — PASS, 23 tests.
+  — PASS, 24 tests.
 - `node .agents/skills/impeccable/scripts/detect.mjs --json app/dashboard/templates/workspace.html app/dashboard/templates/studio.html`
   — PASS, no findings (`[]`).
 - `git diff --check` — PASS.
@@ -57,5 +61,8 @@ finishes and sends that preview job id with the final request.
   only key references.
 - Social distribution is packaged for connected publishing but does not post
   to live external accounts until social OAuth/connectors are configured.
+- Provider-free fallback output is deliberately marked as offline fallback
+  provenance. It exists to keep the product path runnable in local/CI
+  environments; configured local/API providers remain the production route.
 
 builder_status: ready_for_independent_review

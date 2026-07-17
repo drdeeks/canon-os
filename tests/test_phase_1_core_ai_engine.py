@@ -247,6 +247,42 @@ class CoreAIEngineTest(unittest.TestCase):
             self.assertEqual(download.mimetype, "video/mp4")
             download.close()
 
+    def test_provider_free_fallback_renders_downloadable_commercial(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            path = self.create_image(root)
+            originals = (dashboard_app.UPLOADS_DIR, dashboard_app.OUTPUT_DIR, dashboard_app.registry)
+            dashboard_app.UPLOADS_DIR = root / "uploads"
+            dashboard_app.OUTPUT_DIR = root / "output"
+            dashboard_app.registry = BackendRegistry(config={
+                "text": "demo-text", "image": "demo-image", "video": "demo-video",
+                "tts": "demo-tts", "stt": "demo-stt", "music": "demo-music",
+                "studio_mount": str(root / "studio"),
+            })
+            self.addCleanup(setattr, dashboard_app, "UPLOADS_DIR", originals[0])
+            self.addCleanup(setattr, dashboard_app, "OUTPUT_DIR", originals[1])
+            self.addCleanup(setattr, dashboard_app, "registry", originals[2])
+            with path.open("rb") as image:
+                response = app.test_client().post(
+                    "/api/instant-ad",
+                    data={
+                        "image": (image, "brand.png"),
+                        "product_type": "creative studio",
+                        "tagline": "Generate a complete commercial from one brand image.",
+                        "render": "true",
+                    },
+                    content_type="multipart/form-data",
+                )
+            self.assertEqual(response.status_code, 200, response.get_json())
+            payload = response.get_json()
+            self.assertEqual(payload["video_resolution"], "1920x1080")
+            self.assertIn("video_url", payload)
+            self.assertTrue((root / "output" / Path(payload["video_url"]).name).is_file())
+            self.assertTrue(all(
+                item["publish_status"] == "ready_to_connect"
+                for item in payload["social_package"]["platforms"]
+            ))
+
     def test_workspace_frontend_exposes_complete_commercial_flow(self):
         page = app.test_client().get("/").get_data(as_text=True)
 

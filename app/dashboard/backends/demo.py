@@ -1,10 +1,14 @@
 """
-Provider-free demo backends for the hackathon judge path.
+Provider-free offline fallback backends for development and CI.
 
-These adapters deliberately return deterministic fixture metadata. They do not
-contact external services, require API keys, or download models.
+These adapters deliberately return deterministic local assets. They do not
+contact external services, require API keys, or download models. They are not
+the product path; production use should route to configured local/API providers.
 """
 
+import subprocess
+import time
+from pathlib import Path
 from typing import List
 
 from .registry import register_backend
@@ -18,6 +22,15 @@ class _DemoBase:
     def health_check(self) -> bool:
         return True
 
+    def _exports_dir(self) -> Path:
+        directory = Path(self.config.get("studio_mount", "")) if self.config.get("studio_mount") else None
+        if not directory:
+            import os
+            directory = Path(os.environ.get("STUDIO_MOUNT", "/mnt/studio"))
+        exports = directory / "exports"
+        exports.mkdir(parents=True, exist_ok=True)
+        return exports
+
 
 @register_backend("demo-text")
 class DemoTextBackend(_DemoBase):
@@ -25,12 +38,12 @@ class DemoTextBackend(_DemoBase):
                  max_tokens: int = 2048, temperature: float = 0.7) -> dict:
         return {
             "response": (
-                "Demo fixture: Canon OS turns the supplied brand image and "
+                "Offline fallback: Canon OS turns the supplied brand image and "
                 "campaign brief into a consistent launch campaign draft."
             ),
             "model": model or "demo-text-fixture",
             "tokens": 18,
-            "provenance": "Demo fixture — no provider contacted",
+            "provenance": "Offline fallback — no provider contacted",
         }
 
     def list_models(self) -> List[str]:
@@ -47,7 +60,7 @@ class DemoImageBackend(_DemoBase):
         return {
             "images": ["demo-image-fixture.png"],
             "prompt_id": "demo-image-fixture",
-            "provenance": "Demo fixture — no provider contacted",
+            "provenance": "Offline fallback — no provider contacted",
         }
 
     def list_models(self) -> List[str]:
@@ -64,11 +77,19 @@ class DemoVideoBackend(_DemoBase):
                  steps: int = 30, cfg: float = 7.0, seed: int = -1,
                  fps: int = 8, input_image: str = None,
                  mode: str = "txt2vid") -> dict:
+        destination = self._exports_dir() / f"demo-video-{int(time.time() * 1000)}.mp4"
+        completed = subprocess.run(
+            ["ffmpeg", "-y", "-f", "lavfi", "-i", "color=c=#1d2440:s=320x180:r=8:d=3",
+             "-vf", "drawtext=text='Canon OS offline scene':fontcolor=white:fontsize=18:x=(w-text_w)/2:y=(h-text_h)/2",
+             "-c:v", "libx264", "-pix_fmt", "yuv420p", str(destination)],
+            capture_output=True, text=True, check=False,
+        )
+        if completed.returncode != 0:
+            return {"error": f"DEMO_VIDEO_FAILED: {completed.stderr[-300:]}"}
         return {
-            "images": ["demo-video-fixture.webp"],
-            "video": "demo-video-fixture.webp",
+            "video": str(destination),
             "frames": frames,
-            "provenance": "Demo fixture — no provider contacted",
+            "provenance": "Offline fallback — no provider contacted",
         }
 
     def list_models(self) -> List[str]:
@@ -82,11 +103,18 @@ class DemoVideoBackend(_DemoBase):
 class DemoTTSBackend(_DemoBase):
     def synthesize(self, text: str, voice: str = None, language: str = "en",
                    speed: float = 1.0, output_format: str = "wav") -> dict:
+        destination = self._exports_dir() / f"demo-voice-{int(time.time() * 1000)}.wav"
+        completed = subprocess.run(
+            ["ffmpeg", "-y", "-f", "lavfi", "-i", "sine=frequency=440:duration=2", str(destination)],
+            capture_output=True, text=True, check=False,
+        )
+        if completed.returncode != 0:
+            return {"error": f"DEMO_TTS_FAILED: {completed.stderr[-300:]}"}
         return {
-            "audio_base64": "",
+            "audio_path": str(destination),
             "format": output_format,
-            "duration": 0,
-            "provenance": "Demo fixture — no provider contacted",
+            "duration": 2,
+            "provenance": "Offline fallback — no provider contacted",
         }
 
     def list_voices(self) -> List[str]:
@@ -97,8 +125,16 @@ class DemoTTSBackend(_DemoBase):
 class DemoMusicBackend(_DemoBase):
     def generate(self, prompt: str, duration_seconds: int = 30, model: str = None,
                  genre: str = None, mood: str = None, bpm: int = None) -> dict:
-        return {"audio_path": "demo-music-fixture.wav", "duration": duration_seconds,
-                "provenance": "Demo fixture — no provider contacted"}
+        destination = self._exports_dir() / f"demo-music-{int(time.time() * 1000)}.wav"
+        completed = subprocess.run(
+            ["ffmpeg", "-y", "-f", "lavfi", "-i", f"sine=frequency=220:duration={duration_seconds}",
+             str(destination)],
+            capture_output=True, text=True, check=False,
+        )
+        if completed.returncode != 0:
+            return {"error": f"DEMO_MUSIC_FAILED: {completed.stderr[-300:]}"}
+        return {"audio_path": str(destination), "duration": duration_seconds,
+                "provenance": "Offline fallback — no provider contacted"}
 
     def list_models(self) -> List[str]:
         return ["demo-music-fixture"]
@@ -109,10 +145,10 @@ class DemoSTTBackend(_DemoBase):
     def transcribe(self, audio_base64: str = None, audio_url: str = None,
                    language: str = None, task: str = "transcribe") -> dict:
         return {
-            "text": "Demo fixture transcription.",
+            "text": "Offline fallback transcription.",
             "language": language or "en",
             "segments": [],
-            "provenance": "Demo fixture — no provider contacted",
+            "provenance": "Offline fallback — no provider contacted",
         }
 
     def list_models(self) -> List[str]:
