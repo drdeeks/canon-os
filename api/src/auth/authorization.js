@@ -54,15 +54,14 @@ function createAuthorization({ userStore, accessTokenSecret }) {
       return next();
     } catch (error) {
       const authError = error.status ? error : unauthorized();
-      return response.status(authError.status).json({ error: authError.message });
+      return next(authError);
     }
   }
 
   function requireRole(...roles) {
     return (request, response, next) => {
       if (!request.user || !roles.includes(request.user.role)) {
-        const error = forbidden();
-        return response.status(error.status).json({ error: error.message });
+        return next(forbidden());
       }
       return next();
     };

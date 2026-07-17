@@ -100,3 +100,13 @@ UUID.
 Set `LOG_LEVEL=debug|info|warn|error` to control the minimum emitted level
 (default: `info`). Set `CANON_OS_OBSERVABILITY=false` only for local debugging
 or a controlled rollback; structured request logging is enabled by default.
+
+## Centralized errors
+
+Phase 0.10 routes parser failures, authentication/authorization failures, route
+failures, unknown routes, and unexpected exceptions through one API error
+middleware. Client-safe failures retain their HTTP status and message; malformed
+JSON returns `400` and unknown routes return `404`. Unexpected failures return
+`500 { "error": "Internal server error." }` without leaking implementation
+details. Error records use the existing request correlation ID and structured
+logger event `http_request_failed`.

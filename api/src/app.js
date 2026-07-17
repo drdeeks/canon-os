@@ -9,6 +9,7 @@ const { createS3AssetStore } = require("./storage/asset-store");
 const { createRabbitMqJobQueue } = require("./queue/job-queue");
 const { createLogger } = require("./observability/logger");
 const { createHttpLoggingMiddleware } = require("./observability/http-logging");
+const { createErrorMiddleware, createHttpError, createNotFoundMiddleware } = require("./errors/error-middleware");
 const { randomUUID } = require("node:crypto");
 
 const SERVICE_NAME = "canon-os-api";
@@ -61,25 +62,19 @@ function createApp(options = {}) {
     response.status(200).json({ status: "ok", service: SERVICE_NAME });
   });
 
-  app.post("/api/v1/auth/register", async (request, response) => {
+  app.post("/api/v1/auth/register", async (request, response, next) => {
     try {
       response.status(201).json(await auth.register(request.body || {}));
     } catch (error) {
-      response.status(error.code === "EMAIL_TAKEN" ? 409 : error.status || 500).json({
-        error: (error.status || error.code === "EMAIL_TAKEN")
-          ? error.message
-          : "Unable to register account.",
-      });
+      next(error);
     }
   });
 
-  app.post("/api/v1/auth/login", async (request, response) => {
+  app.post("/api/v1/auth/login", async (request, response, next) => {
     try {
       response.status(200).json(await auth.login(request.body || {}));
     } catch (error) {
-      response.status(error.status || 500).json({
-        error: error.status ? error.message : "Unable to log in.",
-      });
+      next(error);
     }
   });
 
@@ -107,7 +102,7 @@ function createApp(options = {}) {
 
   function requireJobQueue(_request, response, next) {
     if (!jobQueue) {
-      return response.status(503).json({ error: "Job queue is not configured." });
+      return next(createHttpError(503, "Job queue is not configured.", "JOB_QUEUE_UNAVAILABLE"));
     }
     return next();
   }
@@ -119,13 +114,13 @@ function createApp(options = {}) {
     async (request, response, next) => {
       const { job_type: jobType, payload, priority = 0 } = request.body || {};
       if (typeof jobType !== "string" || jobType.trim() === "" || jobType.length > 100) {
-        return response.status(400).json({ error: "job_type must be a non-empty string up to 100 characters." });
+        return next(createHttpError(400, "job_type must be a non-empty string up to 100 characters.", "INVALID_JOB_TYPE"));
       }
       if (payload === null || Array.isArray(payload) || typeof payload !== "object") {
-        return response.status(400).json({ error: "payload must be a JSON object." });
+        return next(createHttpError(400, "payload must be a JSON object.", "INVALID_JOB_PAYLOAD"));
       }
       if (!Number.isInteger(priority) || priority < 0 || priority > 10) {
-        return response.status(400).json({ error: "priority must be an integer between 0 and 10." });
+        return next(createHttpError(400, "priority must be an integer between 0 and 10.", "INVALID_JOB_PRIORITY"));
       }
 
       const job = {
@@ -143,7 +138,7 @@ function createApp(options = {}) {
         await jobQueue.enqueue(job);
         return response.status(202).json({ job });
       } catch (error) {
-        return response.status(503).json({ error: "Unable to enqueue job." });
+        return next(createHttpError(503, "Unable to enqueue job.", "JOB_QUEUE_UNAVAILABLE"));
       }
     },
   );
@@ -156,11 +151,11 @@ function createApp(options = {}) {
       try {
         const { role } = request.body || {};
         if (typeof role !== "string" || !ROLE_VALUES.includes(role)) {
-          return response.status(400).json({ error: "Role must be one of: admin, manager, viewer." });
+          return next(createHttpError(400, "Role must be one of: admin, manager, viewer.", "INVALID_ROLE"));
         }
         const user = await userStore.updateRole(request.params.userId, role);
         if (!user) {
-          return response.status(404).json({ error: "User not found." });
+          return next(createHttpError(404, "User not found.", "USER_NOT_FOUND"));
         }
         return response.status(200).json({ user });
       } catch (error) {
@@ -171,7 +166,7 @@ function createApp(options = {}) {
 
   function requireAssetStore(_request, response, next) {
     if (!assetStore) {
-      return response.status(503).json({ error: "Asset storage is not configured." });
+      return next(createHttpError(503, "Asset storage is not configured.", "ASSET_STORAGE_UNAVAILABLE"));
     }
     return next();
   }
@@ -185,10 +180,10 @@ function createApp(options = {}) {
       try {
         const filename = request.get("x-file-name");
         if (typeof filename !== "string" || filename.trim() === "" || filename.length > 255) {
-          return response.status(400).json({ error: "x-file-name must contain a filename up to 255 characters." });
+          return next(createHttpError(400, "x-file-name must contain a filename up to 255 characters.", "INVALID_FILENAME"));
         }
         if (!Buffer.isBuffer(request.body) || request.body.length === 0) {
-          return response.status(400).json({ error: "Asset upload body must be non-empty binary data." });
+          return next(createHttpError(400, "Asset upload body must be non-empty binary data.", "INVALID_ASSET_BODY"));
         }
         const assetId = randomUUID();
         await assetStore.upload({
@@ -215,7 +210,7 @@ function createApp(options = {}) {
     requireAssetStore,
     async (request, response, next) => {
       if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(request.params.assetId)) {
-        return response.status(400).json({ error: "assetId must be a UUID." });
+        return next(createHttpError(400, "assetId must be a UUID.", "INVALID_ASSET_ID"));
       }
       try {
         const asset = await assetStore.download({ key: `${request.user.id}/${request.params.assetId}` });
@@ -231,23 +226,30 @@ function createApp(options = {}) {
     },
   );
 
-  app.post("/graphql", async (request, response) => {
-    const { query, variables, operationName } = request.body || {};
-    if (typeof query !== "string" || query.trim() === "") {
-      return response.status(400).json({
-        errors: [{ message: "GraphQL request body must include a non-empty query." }],
-      });
-    }
+  app.post("/graphql", async (request, response, next) => {
+    try {
+      const { query, variables, operationName } = request.body || {};
+      if (typeof query !== "string" || query.trim() === "") {
+        return response.status(400).json({
+          errors: [{ message: "GraphQL request body must include a non-empty query." }],
+        });
+      }
 
-    const result = await graphql({
-      schema,
-      source: query,
-      rootValue,
-      variableValues: variables,
-      operationName,
-    });
-    return response.status(result.errors ? 400 : 200).json(result);
+      const result = await graphql({
+        schema,
+        source: query,
+        rootValue,
+        variableValues: variables,
+        operationName,
+      });
+      return response.status(result.errors ? 400 : 200).json(result);
+    } catch (error) {
+      return next(error);
+    }
   });
+
+  app.use(createNotFoundMiddleware());
+  app.use(createErrorMiddleware({ logger }));
 
   return app;
 }
