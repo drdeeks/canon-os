@@ -1,0 +1,9 @@
+# .ignore — paths excluded from the canonical source tree (not .gitignore)
+
+This file documents directories that exist locally but are explicitly outside the
+authoritative project. `.gitignore` remains the mechanism for VCS exclusions.
+
+.trash/        # retired prior-version docs (historical, non-authoritative)
+.studio/       # local runtime state (config, state, cache, logs, manifests)
+.secrets/      # runtime secrets
+.venv/         # python virtualenv

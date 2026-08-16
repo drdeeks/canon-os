@@ -1,5 +1,0 @@
-# Agent Character Kit — constitution (hard constraints).
-# The daemon embeds safe defaults; this file OVERRIDES/extends them.
-hard_constraints:
-  - no_credential_leak: block any tool call that would expose a secret
-  - no_destructive_without_confirm: block rm -rf /, mkfs, dd on disks, etc. unless confirmed

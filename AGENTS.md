@@ -1,94 +1,47 @@
-# AGENTS.md — Canon OS (Bundle Cold-Start)
+# AGENTS.md
 
-> Read this FIRST in any new session touching this bundle. It orients you across
-> BOTH the studio and the blueprint. Deep detail lives in the per-component
-> AGENTS/README files linked below.
+Compact ramp-up for OpenCode sessions. Every line is a trap an agent would likely hit
+without help.
 
----
+## Authority order (which doc wins on conflict)
+1. `.governance/FOREVER_DOCTRINE_UNIVERSAL.yaml` — supreme constitution (POL-001…007, `test_of_forever`).
+2. `docs/ARCHITECTURE.md` — system source of truth.
+3. `references/overview.md`, `references/local-3d-model-pipeline.md` — design inputs.
+4. `references/TRUE_GOAL.md`, `references/DOCTRINE_IMPLEMENTATION.md` — intent & mapping.
 
-## 1. WHAT THIS IS
+Prior docs in `.trash/` are historical and **non-authoritative** — never implement from them.
 
-Canon OS — an autonomous creative studio + marketing platform. One image plus an
-optional sentence become a complete, per-platform campaign that self-distributes
-and self-optimizes. Generation is local-first but API-adaptable (not strictly
-local). This bundle holds two coupled halves:
+## Hard rules (non-obvious)
+- **Capability is probed, not assumed.** Never hardcode a model, runtime, or host in `core/`.
+  Everything resolves via `core/capabilities/` + `models/registry/`.
+- **Layering is enforced:** `CORE→CAPABILITY→PROVIDER→MODEL→RUNTIME→HARDWARE`. Lower layers
+  never import higher. A lower→higher import is a doctrine violation.
+- **No blueprint loop / checklist-as-truth.** Plan in `TASKS.md`; verify in `tests/`. The old
+  `blueprint.md`, `checklist.md`, and `.agent/` (ACK) are retired.
+- **Portable, not container-bound.** `runtimes/native/` must work without Docker.
+- **Secrets** → `.secrets/`, **local state** → `.studio/` (both git-ignored). Do not commit.
 
-| Component | Role | Entry doc |
-|-----------|------|-----------|
-| `ai-creative-studio/` | The running studio: identity stack + creative pipeline | `ai-creative-studio/AGENTS.md` |
-| `enterprise-blueprint/` | The one-time source of truth + generated checklists | `enterprise-blueprint/blueprint.md` |
+## Commands (verified)
+- Validate an artifact:
+  `python3 core/validation/validate.py <file> [--min-lines N --min-chars N --syntax node|python|json|auto|off --require "pat" --forbid "pat" --spec file.json]`
+- Run the test runner: `bash tests/run-all.sh` (executes `test_*.sh` only) or one module:
+  `bash tests/run-all.sh tests/test_api.sh`.
+- API interface: `cd interfaces/api/api && npm start` (node `src/server.js`); `npm test`
+  (`node --test test/**/*.test.js`).
 
----
+## Gotchas
+- **`tests/` is legacy v0.1-era and largely broken after the v0.2.0 sanitization.** Many
+  `test_*.sh` reference the hardcoded path `/home/ubuntu/ai-creative-studio/...` and `src/`;
+  `test_phase_0_3_db_schema.py` expects Postgres + `db/migrations` (now SQLite at
+  `core/projects/migrations/`). They will FAIL/SKIP and are **not** a v0.2.0 quality signal —
+  porting is tracked in `TASKS.md`. The `test_phase_0_*.py` / `test_dashboard_health.py` files
+  are standalone `unittest` and are **not** invoked by `run-all.sh`.
+- `models/registry/backends.json` is the provider→model→runtime registry. It is currently
+  **sample-only** — no live backends are wired up yet.
+- Host-probe thresholds (`native`/`experimental`/`remote`) are placeholders pending a
+  host-power depth spec — see `TASKS.md`.
 
-## 2. READ ORDER
-
-1. `ai-creative-studio/CANON_OS.md` — project foundation (what/why/how/requirements).
-2. `enterprise-blueprint/blueprint.md` — master specification (every module, screen, schema, phase, integrated with the adforge 7-agent / 7-phase chain).
-3. `ai-creative-studio/AGENTS.md` — pipeline stages, agent→model map, commands.
-4. `ai-creative-studio/creative-loop-ideology.md` — the doctrine behind the two-review mechanism.
-
----
-
-## 3. THE GOVERNING RULE
-
-The blueprint is the absolute, one-time source of truth. Once it exists you do
-NOT keep editing it to drive work — you generate the checklist from it and build
-against the checklist, which is loop-enforced and mapped 1:1 to the blueprint.
-
-```bash
-cd enterprise-blueprint
-python3 enterprise-blueprint/scripts/validate_blueprint.py blueprint.md        # expect 34/34
-python3 enterprise-blueprint/scripts/generate_checklist.py blueprint.md        # loop-enforced (the workflow)
-```
-
-If scope genuinely changes, amend the blueprint via a Change Log (CL-NNNN) entry
-per Part V, then regenerate the checklist — never edit the checklist by hand.
-
----
-
-## 4. ESTABLISHED MECHANISMS (adforge, integrated)
-
-- **7 agents:** foundation-engineer, ai-engine, content-orchestrator,
-  social-integrator, frontend-engineer, data-scientist, devops-engineer.
-- **7-phase loop-enforced chain** (`.blueprint-chain/canon-os-blueprint.json`,
-  phases 0–6). Locked until prior verified; never re-opened.
-- **Two-review mechanism:**
-  - *In-phase peer verification* — a dedicated reviewer agent (not the creator)
-    checks the work is actually functional/correct. Loop enforcer gates + locks.
-  - *Final holistic review* — Director pass: "would this be released?"
-
----
-
-## 5. THE TWO-REVIEW MECHANISM (how "verification" works here)
-
-- **In-phase peer verification** — runs every phase, right after the create
-  agent finishes. A DEDICATED reviewer agent (never the creator) verifies the
-  output is actually functional and correct, not merely present. The loop
-  enforcer locks the phase on pass; a locked phase is never re-opened.
-- **Final holistic review** — one Director pass over the whole repo: "would this
-  be released?" — wholesome code intact, structure streamlined and organized.
-
-Every build phase in the blueprint carries a peer-verify deliverable; Phase 6 is
-the final holistic review.
-
----
-
-## 6. HARD RULES
-
-1. NEVER modify `ai-creative-studio/.agent/constitution.yaml` during a run.
-2. NEVER skip chain verification — every artifact is verified before completing.
-3. NEVER regenerate passing artifacts — only fix what fails review.
-4. NEVER hard-delete source — move to `.trash/`.
-5. ALWAYS git commit before structural changes. (Commit freely; pushing needs a go-ahead.)
-6. Flash-first: cheap drafts for iteration, quality render only on approval.
-7. Identity is immutable — defined once, inherited everywhere.
-8. Local-first, API-adaptable — never strictly local (MOD-022 backend registry).
-
----
-
-## 7. CURRENT STATE
-
-- Blueprint validator: 34/34 passed, 0 failed, 0 warned.
-- Checklist: 7 phases · 24 modules · 7 screens (loop mode).
-- Reference checklist: `enterprise-blueprint/reference/` (plain/unlocked).
-- Elevator pitch: `ai-creative-studio/PITCH.md`.
+## Where things actually live
+- Engine: `core/` (`orchestration/chain.py`, `validation/validate.py`, `projects/migrations/`).
+- Interfaces: `interfaces/web` (dashboard), `interfaces/api` (node server).
+- Reusable code from the old repo was relocated, not deleted; see `CHANGELOG.md` and `.trash/`.

@@ -1,94 +1,25 @@
-# Canon OS — CHANGELOG
+# CHANGELOG
 
-> This file is the append-only change log. No entry may be modified or deleted.
-> All entries must follow the format defined in blueprint.md Part V.
+## v0.2.0 (2026-08-15)
 
----
+### Sanitization & restructure
+- Retired all prior-version authoritative docs to `.trash/` (blueprint, checklist, old
+  AGENTS/README, the old "Enterprise Local-Only Stack" `docs/ARCHITECTURE.md`, autonomy
+  specs, ACK `.agent/`, `.agents/skills/impeccable/`, knowledge/memory/corpus,
+  enterprise-blueprint skill).
+- Vendored the three authoritative inputs into `references/` (overview, local-3d-model-pipeline)
+  and the FOREVER doctrine into `.governance/`.
+- Reorganized reusable code: `chain.py` → `core/orchestration/`, `validate.py` →
+  `core/validation/`, `api/` → `interfaces/api/`, `app/` → `interfaces/web/`,
+  `db/migrations/` → `core/projects/migrations/`, `scripts/` → `tools/`, `docker/` +
+  `compose.yaml` → `runtimes/containers/`, `config/backends.json` →
+  `models/registry/backends.json`.
+- Folded the stray top-level `host/` into `core/host/` (detection, adapters, installers,
+  recovery) so the tree matches `docs/ARCHITECTURE.md` §10.
+- Rewrote `docs/ARCHITECTURE.md` as the unified source of truth (creative pipeline + 3D
+  generation + capability spine + FOREVER overlay); added `references/TRUE_GOAL.md` and
+  `references/DOCTRINE_IMPLEMENTATION.md`.
 
-## CL-0001 — Establish Canon OS Blueprint & Scope
-
-```yaml
-Date        : 2026-07-16
-Author      : Canon OS Foundation <foundation@canon-os.local>
-Type        : feature
-Modules     : MOD-001, MOD-004, MOD-021, MOD-022
-Description : Establish Canon OS blueprint from foundation. Add full creative-studio
-              scope (image generation, inpainting/photo editing, video, audio, STT,
-              music), local-first-but-API-adaptable backend registry, and unify with
-              the adforge 7-agent / 7-phase loop-enforced chain and two-review mechanism.
-Impact      : High
-Testing     : Validator 34/34, checklist generated (loop mode), 7 phases / 24 modules / 7 screens
-Rollback    : Revert blueprint.md to prior commit; regenerate checklist from prior blueprint
-```
-
-## CL-0002 — Image Studio, Backend Registry & Model Management
-
-```yaml
-Date        : 2026-07-16
-Author      : Canon OS Foundation <foundation@canon-os.local>
-Type        : feature
-Modules     : MOD-021, MOD-022, MOD-024
-Description : Add Image & Photo Studio (MOD-021), Backend Registry (MOD-022), and
-              Model Management (MOD-024) so generation is not strictly local and
-              covers paint/photo in addition to the creative campaign pipeline.
-Impact      : Medium
-Testing     : Validator pass; SPEC-006 / SPEC-007 added; Screen 6.1 / Screen 7.1 added
-Rollback    : Disable FEAT_IMAGE_STUDIO / FEAT_BACKEND_REGISTRY flags; revert specs
-```
-
-## CL-0003 — Remove Stale Scaffold Artifacts
-
-```yaml
-Date        : 2026-07-16
-Author      : Canon OS Foundation <foundation@canon-os.local>
-Type        : chore
-Modules     : N/A
-Description : Removed stale hackathon-submission duplicate directory (ai-creative-studio/b/),
-              stale tarball, and reset project.json + CHANGELOG.md to Canon OS.
-              Re-point project name from the prior hackathon-submission label to "Canon OS".
-Impact      : Low
-Testing     : validate_blueprint.py 34/34; no leftover hackathon-submission strings remain
-Rollback    : Restore from .trash/ if needed
-```
-
-## CL-0004 — API Skeleton and Liveness Gate
-
-```yaml
-Date        : 2026-07-17
-Author      : Canon OS Foundation <foundation@canon-os.local>
-Type        : feature
-Modules     : MOD-015
-Description : Add the isolated Express and GraphQL API skeleton with a /health
-              liveness endpoint and an initial GraphQL health query.
-Impact      : Low
-Testing     : Node HTTP integration tests for health and GraphQL requests
-Rollback    : Revert the API skeleton commit
-```
-
-## CL-0005 — JWT Registration and Login
-
-```yaml
-Date        : 2026-07-17
-Author      : Canon OS Foundation <foundation@canon-os.local>
-Type        : feature
-Modules     : MOD-014
-Description : Add versioned registration and login endpoints with bcrypt password
-              hashing, JWT access/refresh token issuance, and PostgreSQL users-table support.
-Impact      : Medium
-Testing     : Node HTTP integration tests for registration, login, issued JWTs, and rejection paths
-Rollback    : Revert the JWT authentication commit
-```
-
-## CL-0006 — Structured API Request Logging
-
-```yaml
-Date        : 2026-07-17
-Author      : Canon OS Foundation <foundation@canon-os.local>
-Type        : feature
-Modules     : MOD-015
-Description : Add JSON structured logging for completed API requests, including
-              request correlation IDs, response status, duration, and authenticated user IDs.
-Impact      : Low
-Testing     : Node unit and HTTP integration tests parse emitted JSON records and verify correlation IDs
-Rollback    : Set CANON_OS_OBSERVABILITY=false or revert the logging commit
-```
+## v0.1.x (prior versions — historical)
+See `.trash/`. These releases assumed a container-bound, hardcoded-model "compute brain"
+design that v0.2.0 supersedes.

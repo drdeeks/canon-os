@@ -1,20 +1,32 @@
-# ACK shared crew runtime state
+# Canon OS — gitignore
+
+# Python
 __pycache__/
 *.pyc
+*.pyo
 .venv/
-node_modules/
-docs/hackathon/crew/canon-os-hackathon/shared/.env
-docs/hackathon/crew/canon-os-hackathon/shared/.agent/*.pid
-docs/hackathon/crew/canon-os-hackathon/shared/.agent/*.sock
-docs/hackathon/crew/canon-os-hackathon/shared/.agent/*.jsonl
-docs/hackathon/crew/canon-os-hackathon/shared/.agent/*.pos
-docs/hackathon/crew/canon-os-hackathon/shared/.agent/logs/
-docs/hackathon/crew/canon-os-hackathon/shared/watcher-status.json
-docs/hackathon/crew/canon-os-hackathon/shared/validation-status.json
-docs/hackathon/crew/canon-os-hackathon/shared/poller-status.json
-docs/hackathon/crew/canon-os-hackathon/shared/current-task.md
-docs/hackathon/crew/canon-os-hackathon/shared/loop-state.json
-docs/hackathon/crew/canon-os-hackathon/shared/self-healing-status.json
 
-# Full blueprint watchdog runtime state
-.agent/runtime/
+# Node (web/api interfaces)
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Local state & secrets (never committed)
+.secrets/
+.studio/
+.trash/
+
+# Env / credentials
+.env
+*.env
+*.key
+*.pem
+
+# Editor / OS
+.DS_Store
+*.swp
+.idea/
+
+# Built artifacts
+build/
+*.egg-info/
