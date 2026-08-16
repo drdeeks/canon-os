@@ -12,6 +12,9 @@ Active build plan for Canon OS v0.2.x. Plan here; verify in `tests/`.
 ## In progress
 - [ ] Implement host probe (`core/host/detection/`) → capability class output.
 - [ ] Implement capability resolver + contracts (`core/capabilities/`).
+- [ ] Rewire `interfaces/web/app/model-manager/cli.py` data layer to the registry (currently a
+      shim); it already self-resolves paths via `CANONOS_*` env + root-walk.
+- [ ] Adopt self-resolving path/endpoint logic repo-wide (no hardcoded paths/URLs — §5.4).
 
 ## Next
 - [ ] Port providers behind `models/registry/` (image, image-to-3d, mesh-correction, video, audio, text).

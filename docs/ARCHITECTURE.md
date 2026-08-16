@@ -100,6 +100,21 @@ core logic — only via registry lookups.
 
 ---
 
+## 5.4 Engineering invariants (no hardcoding)
+
+- **No hardcoded models, providers, runtimes, or hosts.** Everything is discovered via the
+  capability probe + `models/registry/` and resolved at runtime. Design docs may list
+  *recommended* models as reference points only (e.g. `references/local-3d-model-pipeline.md`
+  suggests Qwen-class models) — these are samples, never truth.
+- **No hardcoded paths or endpoints.** Locations self-resolve: an explicit environment
+  variable override (e.g. `CANONOS_ROOT`, `CANONOS_STATE_DIR`, `CANONOS_PROVIDER_<NAME>_URL`)
+  wins; otherwise code walks up from its own file to the repo root (detected by the
+  `.governance/` marker) and derives subpaths. Provider endpoint URLs are **not** stored in
+  the registry — they resolve from env/logic at runtime. See `models/registry/backends.json`
+  (reference only) and `interfaces/web/app/model-manager/cli.py` (reference resolver).
+
+---
+
 ## 6. Runtime layer — portable, not container-bound
 
 `runtimes/` holds three sibling adapters:

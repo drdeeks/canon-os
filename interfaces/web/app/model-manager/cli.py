@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """
-CLI tool for managing AI Creative Studio models.
+CLI tool for managing Canon OS models.
 
-Installed as 'studio-model' command.
+Treats `models/registry/backends.json` as the reference set of recommended
+providers — never hardcodes models; resolution happens at runtime via the
+capability layer. Installed as 'canon-model' command.
 """
 
 import argparse
@@ -51,29 +53,55 @@ signal.signal(signal.SIGTERM, _signal_handler)
 signal.signal(signal.SIGINT, _signal_handler)
 
 
-# Add parent directory to path to import catalog
-import importlib.util
-import os
+# Load the provider/model registry. Recommended providers are reference points
+# only — nothing is hardcoded; the capability layer resolves the real provider at
+# runtime. (Formerly this imported a hardcoded `model_catalog.py`, now retired.)
+import json as _json
 
-def _import_catalog():
-    catalog_path = Path(__file__).parent.parent / "dashboard" / "model_catalog.py"
-    spec = importlib.util.spec_from_file_location("catalog", catalog_path)
-    catalog = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(catalog)
-    return catalog
+def _load_registry():
+    reg_path = Path(__file__).resolve().parents[3] / "models" / "registry" / "backends.json"
+    try:
+        with open(reg_path) as _f:
+            return _json.load(_f)
+    except OSError:
+        return {"backends": {}, "urls": {}, "_options": {}}
 
-_catalog = _import_catalog()
-MODEL_CATALOG = _catalog.MODEL_CATALOG
-search_models = _catalog.search_models
-get_model = _catalog.get_model
-get_models_by_type = _catalog.get_models_by_type
-get_models_by_use_case = _catalog.get_models_by_use_case
+_REGISTRY = _load_registry()
+# Reference set of recommended providers, keyed by capability type.
+PROVIDER_REGISTRY = _REGISTRY.get("backends", {})
+MODEL_CATALOG = PROVIDER_REGISTRY  # shim: legacy name -> registry reference
 
-# Constants
-STATE_DIR = Path("/opt/ai-studio/config")
+def search_models(query):
+    q = (query or "").lower()
+    return [p for p in PROVIDER_REGISTRY if q in p.lower()]
+
+def get_model(model_id):
+    return PROVIDER_REGISTRY.get(model_id)
+
+def get_models_by_type(model_type):
+    return PROVIDER_REGISTRY.get(model_type)
+
+def get_models_by_use_case(use_case):
+    q = (use_case or "").lower()
+    return {k: v for k, v in PROVIDER_REGISTRY.items() if q in k.lower()}
+
+# Self-resolving locations: explicit env override, else walk up from this file to
+# the repo root (detected by the .governance/ marker). Never a hardcoded path.
+def _resolve_root():
+    env_root = os.environ.get("CANONOS_ROOT")
+    if env_root:
+        return Path(env_root).resolve()
+    here = Path(__file__).resolve()
+    for parent in [here, *here.parents]:
+        if (parent / ".governance").is_dir():
+            return parent
+    return here.parents[2]  # fallback: repo/interfaces/web/app
+
+ROOT = _resolve_root()
+STATE_DIR = Path(os.environ.get("CANONOS_STATE_DIR", ROOT / ".studio" / "configuration"))
+MODELS_DIR = Path(os.environ.get("CANONOS_MODELS_DIR", ROOT / ".studio" / "models"))
+BACKUP_DIR = Path(os.environ.get("CANONOS_BACKUP_DIR", ROOT / ".studio" / "backups"))
 STATE_FILE = STATE_DIR / "model-state.json"
-MODELS_DIR = Path("/mnt/studio/models")
-BACKUP_DIR = Path("/opt/ai-studio/backups")
 
 # ANSI colors
 class Colors:

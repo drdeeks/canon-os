@@ -1,6 +1,6 @@
 {
-  "_comment": "AI Creative Studio - Backend Configuration",
-  "_docs": "Change 'backends' values to match what you have installed.",
+  "_comment": "Canon OS - provider registry (reference points only, never hardcoded).",
+  "_docs": "Maps a capability type to a recommended provider. Endpoint locations are NOT stored here; they are resolved at runtime from environment variables (e.g. CANONOS_PROVIDER_<NAME>_URL) or service discovery. Change values to match what the host actually provides.",
   "_options": {
     "text": ["llama-cpp", "ollama", "vllm", "openai"],
     "image": ["comfyui", "automatic1111"],
@@ -17,19 +17,5 @@
     "tts": "kokoro",
     "stt": "whisper",
     "music": "audiocraft"
-  },
-
-  "urls": {
-    "llama-cpp": "http://studio-llamacpp:8080",
-    "ollama": "http://studio-ollama:11434",
-    "vllm": "http://studio-vllm:8000",
-    "comfyui": "http://studio-comfyui:8188",
-    "automatic1111": "http://studio-a1111:7860",
-    "kokoro": "http://studio-kokoro:8880",
-    "coqui": "http://studio-coqui:5002",
-    "bark": "http://studio-bark:5000",
-    "whisper": "http://studio-whisper:9000",
-    "faster-whisper": "http://studio-fwhisper:8080",
-    "audiocraft": "http://studio-audiocraft:7860"
   }
 }
